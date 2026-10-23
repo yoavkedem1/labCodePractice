@@ -2,7 +2,7 @@ name: Validate workshop and deploy Pages
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [main, codex/research-workshop]
   workflow_dispatch:
 permissions:
   contents: read

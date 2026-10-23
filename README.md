@@ -12,6 +12,8 @@ A complete static Python and Git workshop for neuroscience and psychology resear
 
 There is no backend, database, login, or paid service. Lessons are Markdown/Quarto; interactive behavior is plain JavaScript with no build tool. Quarto supplies navigation, search, highlighted/copied code, tabs, and theme switching. The live notebook lab runs real Python in a dedicated Web Worker using Pyodide 0.27.7 with bundled NumPy/pandas/Matplotlib. At build time, a download recipe fetches about 32 MB from the pinned official distribution and verifies wheel hashes. The built website serves these assets itself; browser execution needs no external CDN. A first build needs internet. Serving the built directory locally allows practice without external network access; no service worker/offline browser cache is promised.
 
+Website: [Research / Code on GitHub Pages](https://yoavkedem1.github.io/labCodePractice/).
+
 ## Run locally
 
 Requirements: **Python 3.11** (3.12 also declared compatible), **Node 20+**, **Git 2.28+**, and **Quarto 1.8.27**. Install Quarto from <https://quarto.org/docs/get-started/>. From this repository root:
@@ -79,16 +81,15 @@ To refresh saved notebook outputs after a deliberate analysis change: `python to
 
 Browser QA checks the responsive homepage, mobile navigation, search, dark mode, code tabs, quiz feedback, checklist, downloads, and simulator. See `VALIDATION.md` for the checks actually executed in this implementation. Do not treat a configured CI workflow as a CI run: hosted jobs run only after upload.
 
-## Deploy to GitHub Pages
+## GitHub Pages
 
-Nothing has been uploaded or published. When the owner chooses to deploy:
+This repository is configured to publish at <https://yoavkedem1.github.io/labCodePractice/> using GitHub Actions. Its current default and publishing branch is `codex/research-workshop`.
 
-1. Upload **this folder as the repository root** to a GitHub repository. The workflow assumes `main` as the publishing branch; adapt its trigger if needed.
-2. Under **Settings → Pages → Build and deployment**, select **GitHub Actions**.
-3. Push to `main` or run **Validate workshop and deploy Pages** manually. Pull requests validate without deploying. The validate job installs Python/Node/Quarto, runs the suites, packages materials, builds, and checks links. A separate job deploys only after validation succeeds.
-4. Use the URL returned by the deployment. Relative resources support both user sites and repository subpaths such as `/research-code-workshop/`.
+Pushes to `codex/research-workshop` or `main` run the validation and deployment workflow. Pull requests validate without deploying. To publish manually, open **Actions → Validate workshop and deploy Pages → Run workflow** and select the publishing branch. **Settings → Pages → Build and deployment** uses **GitHub Actions**.
 
-Pages requires the repository's appropriate hosting entitlement and configured Actions permissions. The workflow grants Pages and OIDC write permission only to deployment. It has been prepared and locally inspected; no GitHub account, remote repository, or hosted deployment has been created here.
+The workflow installs Python, Node, and Quarto; runs the scientific notebooks, Git tests, browser lesson solutions, and real Git exercise; builds the site and downloads; then deploys only after validation succeeds. The pinned browser Python runtime is fetched during the build and served with the site. The deployment job alone receives Pages/OIDC write permissions. Relative resources support the `/labCodePractice/` repository subpath.
+
+For a copy hosted in another repository, enable Pages with GitHub Actions and update the workflow's branch filter to that repository's publishing branch. Deployment history and validation results are available in [GitHub Actions](https://github.com/yoavkedem1/labCodePractice/actions).
 
 ## Design and teaching decisions
 

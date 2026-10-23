@@ -1,0 +1,8 @@
+# Teaching comparison, not a scientifically justified alternative cutoff.
+[paths]
+data = "../data/raw/trials.csv"
+output = "../results/sensitivity"
+
+[preprocessing]
+min_rt_s = 0.6
+max_rt_s = 2.0

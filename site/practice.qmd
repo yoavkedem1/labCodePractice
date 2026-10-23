@@ -1,0 +1,71 @@
+---
+title: "Make the habits last"
+subtitle: "A small handoff, then a few short returns to the ideas."
+---
+
+## Your next notebook is the real exercise
+
+Choose a small analysis you can safely share with a labmate. Use synthetic or approved teaching data. Allow 30–45 minutes for the first pass; keep a baseline result so you can distinguish refactoring from a changed scientific method.
+
+```{=html}
+<form class="exercise practice-plan" data-practice-plan>
+<p class="exercise-label">A PERSONAL HANDOFF PLAN</p>
+<label for="practice-project">Which notebook or analysis will you improve?</label><input id="practice-project" data-note="project" placeholder="A specific notebook and a manageable section">
+<label for="practice-question">What scientific result must stay the same?</label><textarea id="practice-question" data-note="baseline" rows="2" placeholder="Input, policy, aggregation level, expected table or figure"></textarea>
+<label><input type="checkbox" data-note="names"> Rename one ambiguous table or function; include units or aggregation level where needed.</label>
+<label><input type="checkbox" data-note="function"> Extract one repeated transformation with explicit inputs and a returned result.</label>
+<label><input type="checkbox" data-note="config"> Load one scientific choice from a reviewed config; preserve the baseline output.</label>
+<label><input type="checkbox" data-note="fresh"> Restart and run all; compare the full summary and one meaningful boundary case.</label>
+<label><input type="checkbox" data-note="review"> Inspect both Git diffs; commit one coherent change and explain it to a partner.</label>
+<label><input type="checkbox" data-note="handoff"> Ask a partner to rerun from documented inputs and environment.</label>
+<label for="practice-evidence">What evidence supports the handoff? What remains uncertain?</label><textarea id="practice-evidence" data-note="evidence" rows="3"></textarea>
+<label for="practice-next">When will you return, and what will you do without looking at the notes?</label><textarea id="practice-next" data-note="next" rows="2" placeholder="Choose a date and a retrieval task below."></textarea>
+<button type="button" data-export-plan>Download my handoff notes</button>
+<p role="status" aria-live="polite" data-practice-status>Notes stay in this browser when local storage is available.</p>
+</form>
+```
+
+## Revisit by recalling, then checking
+
+These are suggested practice intervals, not scheduled reminders. Spend five minutes trying from memory before opening the linked reference. If an explanation was hard to retrieve, return to the live lab and make a prediction before running it.
+
+| When | Try without notes | Then check |
+| --- | --- | --- |
+| Today | Explain why changing a parameter cell can leave a figure stale. Extract one useful function. | [Notebook state mission](notebook-lab.qmd#state) and [module extraction](notebook-lab.qmd#refactor) |
+| In 2 days | Draw HEAD, index, and working files. Predict the commit after stage → edit → commit. | [Git staging mission](git-playground.html?mission=staging) |
+| In 1 week | Make a branch, create a deliberate conflict in the teaching repo, resolve, test, stage, commit. | [Conflict mission](git-playground.html?mission=conflict) and [real Git lab](git-lab.qmd) |
+| In 1 month | Give your chosen analysis to a partner with a fresh environment. Compare the reproduced result. | [Reproducibility checklist](modules/06-reproducibility.qmd) |
+
+## Three questions to explain aloud
+
+<details><summary>My helpers.py is saved. Why does the notebook still behave the old way?</summary>
+
+A running kernel can retain an imported module or a function bound by `from helpers import ...`. Saving the file does not rerun the import or calculations. Restart and run all for the reference result. Deliberate reloading can help during development, but dependent results still need recomputation.
+
+</details>
+
+<details><summary>I staged a rule change, then changed it again. What will my commit contain?</summary>
+
+The staged snapshot. `git diff --staged` shows index versus HEAD; `git diff` shows working files versus index. Adding again updates the staged version. A commit moves the current branch locally; sharing requires a push.
+
+</details>
+
+<details><summary>The PR was merged on GitHub. Why is my local main unchanged?</summary>
+
+The server and your local repository have separate branch pointers. Fetch updates your remote-tracking knowledge. On a clean main that can advance directly, `git pull --ff-only` fetches and advances local main. Divergence requires inspection and coordination.
+
+</details>
+
+## A useful peer review
+
+Trade handoff notes and ask your partner to explain the research question, inputs, effective exclusion rule, aggregation level, and command for reproducing the result. Have them find one function without searching the whole notebook. Ask them to inspect the Git change before telling them what you intended.
+
+| Criterion | Evidence of a useful handoff | If it is missing |
+| --- | --- | --- |
+| Understandable intent | Names and a short README identify question, units, and responsibilities | Improve one unclear name or interface |
+| Equivalent refactor | Full summary agrees with the saved baseline at an explicit tolerance | Locate the first differing intermediate table |
+| Traceable policy | Shared config, distinct alternative outputs, effective run record | Make the selection visible at the entry point |
+| Reproducible procedure | Saved cells run in order with documented environment and inputs | Repair hidden dependencies or missing setup |
+| Reviewable change | Focused diff, meaningful message, scientific consequence explained | Separate the method change from the refactor |
+
+A failed rerun is useful feedback: record the missing assumption, repair it, and ask for another rerun. A checklist supports the conversation; the reproduced result and your partner's explanation are the evidence.

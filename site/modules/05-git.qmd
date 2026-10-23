@@ -1,0 +1,141 @@
+---
+title: "05 · Git, one change at a time"
+subtitle: "Understand your history before you share it."
+---
+
+::: {.lesson-meta}
+45 minutes including the Git lab · Programming experience assumed; Git starts from first principles
+:::
+
+## What you will learn
+
+- Distinguish working files, the staging area, and committed history.
+- Use branches to develop an exclusion-rule change separately.
+- Understand merges, conflicts, remotes, and pull requests.
+
+Files named `analysis_final_really_final.py` do not tell you which rule produced a figure or why it changed. Git records a sequence of committed snapshots, together with messages and parent relationships. It lets you inspect differences and coordinate changes without silently overwriting a colleague's work.
+
+## Git is local; GitHub hosts shared repositories
+
+**Git** is version-control software on your computer. A **repository** contains tracked history and configuration, normally in `.git`. Your **working directory** contains the checked-out files you edit. **GitHub** hosts remote Git repositories and provides collaboration tools such as pull requests. You can commit and branch without internet or a GitHub account.
+
+## Three places to understand
+
+| Place | What it holds | How you inspect it |
+| --- | --- | --- |
+| Working directory | Current files, including edits since staging | `git diff` |
+| Staging area (index) | The exact proposed next snapshot | `git diff --staged` |
+| Commit history | Recorded snapshots reachable through branches | `git log --oneline` |
+
+`git add file.py` copies that file's current content into the index. If you edit again, the later edit is **unstaged** until you add it again. `git commit` records the index as a new commit and moves the current branch pointer. A commit does not automatically upload anything.
+
+```sh
+git status
+git diff
+git add src/experiment/preprocessing.py
+git diff --staged
+git commit -m "Document inclusive reaction-time bounds"
+git log --oneline --graph --all
+```
+
+`git status` explains which changes are staged, unstaged, or untracked. Prefer named paths when learning so you know what enters a commit. In short status, the first column describes the index relative to HEAD; the second describes the working file relative to the index. `MM` means a file has both staged and later unstaged edits.
+
+## Practice with five connected missions
+
+[Open the Git practice room](../git-playground.qmd) to inspect working files, the index, HEAD, commit parents, local branches, server branches, and remote-tracking pointers. Use buttons or a bounded command console. Each mission checks the repository state you produced and includes a hint, worked route, and explanation.
+
+1. **Stage selectively:** commit a 0.50 s rule while leaving a purple plot unstaged. Change a staged file again and explain `MM`.
+2. **Merge independent work:** develop a rule on criteria and a plot on main. Identify the common ancestor before merging.
+3. **Resolve deliberately:** make conflicting rules, write a resolution, stage the file, and commit. Choosing main's value still requires staging the resolution.
+4. **Review and synchronize:** push a feature, review and merge a simulated PR, then fetch/pull locally. Observe how a new server commit invalidates review.
+5. **Recover:** unstage without losing edits, then undo a committed change with a new inverse commit.
+
+This simulation executes no real Git commands. Its teaching IDs such as `c0` are not hashes. It models two files, five local branches, and 50 commits; some operations are deliberately narrower than Git. Practice the same decisions in [the real Git lab](../git-lab.qmd).
+
+## Branches and merging
+
+A **branch** is a movable name pointing to a commit. `HEAD` normally identifies the checked-out branch. `git switch -c criteria` creates a branch at the current commit and switches to it. New commits advance that branch. `git switch main` selects main's snapshot; commit or otherwise preserve unfinished work before switching when changes would conflict.
+
+```sh
+git switch -c criteria
+# edit, test, add, commit on criteria
+git switch main
+git merge criteria
+```
+
+If main is an ancestor of criteria, a default merge can simply move main forward: a **fast-forward**. If both branches have new commits, Git may create a merge commit with two parents. The merge base is a shared ancestor used to compare changes. A **merge conflict** means Git could not combine some edits automatically; it does not mean history has been lost. Even an automatic merge needs scientific review and tests.
+
+For a real conflict, inspect `git status`, edit the affected file to the intended final code, remove markers, run tests, `git add` the resolved path, then `git commit`. To return to the pre-merge state while a merge is unresolved, use `git merge --abort`; start merges with a clean working tree so there is no unrelated work to recover.
+
+## Sharing: remotes, push, pull, and review
+
+A **remote** is a named repository location. `origin` is a conventional name, not a special kind of server. `git clone URL` downloads a repository and configures origin. `git push -u origin criteria` sends missing commits and asks the remote to update its criteria branch; `-u` records tracking information for later commands.
+
+`git pull` fetches remote commits and integrates them into the current branch. The integration method depends on configuration. In this workshop, use `git pull --ff-only` on a clean main branch: it updates only if main can move forward without a merge or rebase. If it refuses, inspect history and coordinate instead of forcing it.
+
+A **pull request** is a GitHub review conversation proposing to merge a source branch into a target branch. It does not exist just because you created or pushed a branch. Review the changed code, scientific rule, tests, and expected results before merging. [The Git lab](../git-lab.qmd) walks through every step on your own repository.
+
+## Ignore local clutter; protect research inputs
+
+`.gitignore` describes untracked paths Git should normally ignore: `.venv/`, caches, generated figures, and machine-specific settings. It does not remove already tracked files or erase history. A small synthetic teaching CSV can be committed. Sensitive participant data, credentials, and approved-storage-only datasets do not belong in a public repository.
+
+```gitignore
+.venv/
+__pycache__/
+.ipynb_checkpoints/
+results/*
+!results/.gitkeep
+```
+
+## Make the unit of review match the decision
+
+Suppose you rename `df2` to `filtered_trials`, extract `filter_trials`, and raise the minimum RT in the same commit. A reviewer now has to distinguish an implementation change from a scientific policy change. Keep the mechanical refactor equivalent first; propose the alternative threshold in a separate config and commit.
+
+In [the Git lab](../git-lab.qmd), add `config/rt-050.toml` and its rationale without editing the baseline or algorithm. Review whether paths point to the intended data, units are explicit, the output directory is distinct, and `run.json` records the effective settings. A pull request should explain the observed change in retained trials and estimates, not just list filenames. A clean textual merge can still combine scientifically incompatible choices.
+
+Generated outputs are ignored here, so include a concise comparison in the review description or run notes. Keep the reproducible command and config in the commit. Never store credentials in a committed config; the filename or format does not make a value safe to share.
+
+## Recover carefully
+
+| Situation | Action | Meaning |
+| --- | --- | --- |
+| Staged the wrong file | `git restore --staged path` | Unstage while preserving working edits; requires an existing HEAD |
+| Need to understand an old choice | `git log -- path` then `git show COMMIT:path` | Inspect history without changing current files |
+| Need to undo a shared commit | `git revert COMMIT` | Create an inverse commit; review and test it |
+| Unwanted uncommitted edit | First inspect `git diff -- path` | `git restore path` discards unstaged content; save a copy if uncertain |
+| Sensitive file was committed | Restrict access and rotate exposed credentials | Ignoring or deleting it in a new commit does not remove old copies |
+
+`git reflog` can help locate previous local branch positions, but it is not a backup of every uncommitted edit. Avoid force pushes and destructive resets while learning.
+
+
+```{=html}
+<form class="quiz exercise" data-answer="0" data-explanation="Ignore machine-specific environments, caches, and generated results here. Commit source, tests, documentation, and the small synthetic CSV; keep credentials and restricted data out of public history."><div class="exercise-label">TRY IT · CHECK YOUR UNDERSTANDING</div><fieldset><legend>Which paths belong in .gitignore for this workshop?</legend><label><input type="radio" name="gitignore" value="0" required> The local .venv directory, caches, and generated results</label><label><input type="radio" name="gitignore" value="1" required> analysis.py, tests, README, and the small synthetic raw CSV</label><label><input type="radio" name="gitignore" value="2" required> Source code, tests, and the project README</label></fieldset><button type="submit">Check answer</button><p class="quiz-feedback" role="status" aria-live="polite"></p></form>
+```
+
+```{=html}
+<form class="quiz exercise" data-answer="0" data-explanation="The index supplies the commit. Later working edits remain unstaged; git diff and git diff --staged show the two comparisons."><div class="exercise-label">TRY IT · CHECK YOUR UNDERSTANDING</div><fieldset><legend>You stage a file, edit it again, then commit without another git add. What is committed?</legend><label><input type="radio" name="staging" value="0" required> The staged version, before the later edit</label><label><input type="radio" name="staging" value="1" required> The latest saved working file automatically</label><label><input type="radio" name="staging" value="2" required> Both versions as two separate commits</label></fieldset><button type="submit">Check answer</button><p class="quiz-feedback" role="status" aria-live="polite"></p></form>
+```
+
+
+```{=html}
+<form class="quiz exercise" data-answer="0" data-explanation="git diff compares working files with the index, showing unstaged edits. git diff --staged compares the index with HEAD; push and log answer different questions."><div class="exercise-label">TRY IT · CHOOSE A COMMAND</div><fieldset><legend>You edited plotting.py. Which command shows your unstaged change?</legend><label><input type="radio" name="command" value="0" required> git diff</label><label><input type="radio" name="command" value="1" required> git push</label><label><input type="radio" name="command" value="2" required> git log</label></fieldset><button type="submit">Check answer</button><p class="quiz-feedback" role="status" aria-live="polite"></p></form>
+```
+
+::: {.exercise}
+<span class="exercise-label">EXERCISE 05 · A BRANCH WITH A PURPOSE</span>
+
+### Explain the graph before pressing merge
+
+Use mission 3 in the [practice room](../git-playground.html?mission=conflict). Before merging, identify each branch tip and their shared ancestor. Explain why changing different files would usually avoid this particular conflict. Then complete the [real local Git workflow](../git-lab.qmd).
+
+<details><summary>Hint</summary>Creating a branch does not create a commit. Look for the last node both branch histories can reach.</details>
+<details><summary>Reveal solution and explanation</summary>
+
+With a fresh sandbox, both branches start at `c0`. Criteria's first commit is `c1`; main's is `c2`. They share `c0`. Both changed the rule from 0.20 to different values, so the merge needs a decision. Resolving creates `c3` with parents `c2` and `c1`. Changing the plot only on main and the rule only on criteria allows a clean three-way merge in this model.
+
+</details>
+:::
+
+## Take it with you
+
+Inspect, stage, commit, branch, and review. A commit is local; a push shares it; a pull request proposes integration. Continue to [the practical Git lab](../git-lab.qmd), then [the reproducibility handoff](06-reproducibility.qmd). References: [Git's introductory book](https://git-scm.com/book/en/v2), [git restore](https://git-scm.com/docs/git-restore), and [GitHub pull requests](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests).

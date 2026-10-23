@@ -1,0 +1,9 @@
+# Baseline analysis. Paths are relative to this file, not the terminal.
+[paths]
+data = "../data/raw/trials.csv"
+output = "../results/baseline"
+
+[preprocessing]
+# Inclusive bounds in seconds; incorrect trials remain in the analysis.
+min_rt_s = 0.2
+max_rt_s = 2.0

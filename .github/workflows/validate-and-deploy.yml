@@ -1,0 +1,80 @@
+name: Validate workshop and deploy Pages
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: workshop-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: motion-perception/requirements-lock.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: quarto-dev/quarto-actions/setup@v2
+        with:
+          version: '1.8.27'
+      - name: Install tested environment and project
+        run: |
+          python -m pip install -r motion-perception/requirements-lock.txt
+          python -m pip install --no-deps -e ./motion-perception
+          python -m pip check
+      - name: Validate all three stages in fresh kernels
+        env:
+          MPLBACKEND: Agg
+        run: python -m pytest motion-perception/tests -q
+      - name: Check Git simulator behavior
+        run: npm test
+      - name: Check live notebook lesson solutions
+        run: python tools/check_browser_lessons.py
+      - uses: actions/cache@v4
+        with:
+          path: site/assets/python-runtime
+          key: pyodide-0.27.7-v1
+      - name: Check real Git lab commands
+        run: python tools/check_git_lab.py
+      - name: Reproduce the analysis
+        run: |
+          python motion-perception/scripts/run_analysis.py
+          python tools/make_preview.py
+      - name: Build downloads, render site, and check links
+        run: python tools/build.py
+      - name: Store built website
+        uses: actions/upload-artifact@v4
+        with:
+          name: website
+          path: site/_site
+          include-hidden-files: true
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: website
+          path: _site
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - name: Deploy GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

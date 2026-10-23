@@ -1,0 +1,185 @@
+---
+title: "03 · Refactor a notebook into reusable Python"
+subtitle: "Extract responsibilities in small steps, with a scientific equivalence check."
+---
+
+::: {.lesson-meta}
+35 minutes · Assumes functions, pandas, and notebooks · Stages A → B → C
+:::
+
+Try the [live extraction mission](../notebook-lab.qmd#refactor) alongside this lesson: edit a helper module, import it, and check that its result remains equivalent.
+
+## What you will learn
+
+- Identify extraction boundaries by responsibility and reuse.
+- Replace repeated expressions and hidden dependencies with explicit function contracts.
+- Move stable functions into `.py` files and call them from a notebook or script.
+- Distinguish a mechanical refactor from a change in scientific method.
+
+Our notebook calculates participant accuracy and RT summaries in two conditions. The same exclusion rule occurs twice. Renaming tables, extracting one filter, and sharing aggregation code should preserve the answer. Changing the cutoff or pooling trials changes the method and needs a separate decision.
+
+## Explore the three versions
+
+These patterns are implemented by the runnable notebooks. Switch between stages, then compare the full files from the [download](../resources.qmd). The browser displays code; scientific execution happens in your environment.
+
+::: {.panel-tabset}
+### A · Original notebook
+
+```python
+import pandas as pd
+
+d = pd.read_csv("data/raw/trials.csv")
+a = d[(d.condition == "clear") & d.reaction_time.between(0.2, 2.0)]
+b = d[(d.condition == "noisy") & d.reaction_time.between(0.2, 2.0)]
+clear_scores = a.groupby("participant_id").correct.mean()
+noisy_scores = b.groupby("participant_id").correct.mean()
+```
+
+**Review:** the rule is duplicated, units are implicit, and `a`/`b` conceal meaning. The complete Stage A notebook also duplicates participant RT aggregation and condition summaries. Save its numeric results before changing anything.
+
+### B · Extracted functions
+
+```python
+# helpers.py, beside the Stage B notebook
+def clean_trials(trials, min_rt_s=0.2, max_rt_s=2.0):
+    """Assumes the supplied workshop CSV schema; Stage C adds full validation."""
+    return trials.loc[trials.reaction_time.between(min_rt_s, max_rt_s)].copy()
+
+
+def summarize(trials):
+    participant_metrics = (trials.groupby(["participant_id", "condition"], observed=True)
+        .agg(accuracy=("correct", "mean"), median_rt=("reaction_time", "median"),
+             n_trials=("correct", "size")).reset_index())
+    return (participant_metrics.groupby("condition", observed=True)
+        .agg(accuracy=("accuracy", "mean"), sem=("accuracy", "sem"),
+             median_rt=("median_rt", "mean"), n_participants=("participant_id", "nunique"))
+        .reset_index())
+```
+
+```python
+from helpers import clean_trials, summarize
+
+# raw_trials was loaded in the preceding cell.
+# First make the policy explicit; Stage C moves it to a reviewed file.
+analysis_settings = {"min_rt_s": 0.2, "max_rt_s": 2.0}
+# filtered_trials = clean_trials(raw_trials, **analysis_settings)
+# condition_metrics = summarize(filtered_trials)
+```
+
+**Review:** one filter applies to all conditions, variable names expose aggregation, and the notebook calls a neighboring module. This is a useful intermediate step. A dictionary of named settings is enough before more than one entry point needs them.
+
+### C · Structured project
+
+```python
+# Run from project root; the notebook resolves this location explicitly.
+from pathlib import Path
+from experiment.config import load_config
+from experiment.preprocessing import load_trials, filter_trials
+from experiment.analysis import participant_summary, condition_summary, choice_curve
+from experiment.plotting import plot_results
+
+config = load_config(Path("config/analysis.toml"))
+raw_trials = load_trials(config.data_path)
+filtered_trials = filter_trials(
+    raw_trials, min_rt_s=config.min_rt_s, max_rt_s=config.max_rt_s
+)
+participant_metrics = participant_summary(filtered_trials)
+condition_metrics = condition_summary(participant_metrics)
+choice_probabilities = choice_curve(filtered_trials)
+figure = plot_results(condition_metrics, choice_probabilities)
+```
+
+**Review:** configuration is read at the entry point, input validation is explicit, calculations are independent of file locations, and the notebook and script call the same installed package. The plotting function returns a figure; the caller chooses whether to display or save it.
+:::
+
+## Choose a boundary you can explain
+
+Mark each notebook block as **load → validate → filter → summarize → visualize → export**. Ask what the block needs and what it produces. A filter should not secretly load a CSV from a personal path; a summary should not export a figure as a side effect. A coordinating workflow can call all these operations, but the operations should remain usable independently.
+
+Do not split every two lines into a function. Extract when you have a stable concept, genuine reuse, or a boundary worth testing. Similar syntax does not always mean the same scientific responsibility. Keep one-off exploratory expressions inline when that is clearer.
+
+:::: {.columns}
+::: {.column width="50%"}
+### Before · fixed policy inside the function
+
+```python
+def select_trials(trials):
+    return trials.loc[
+        trials.reaction_time.between(0.2, 2.0)
+    ].copy()
+```
+:::
+::: {.column width="50%"}
+### After · policy supplied by the caller
+
+```python
+def select_trials(trials, *, min_rt_s, max_rt_s):
+    """Return a new table within inclusive RT bounds (s)."""
+    return trials.loc[
+        trials.reaction_time.between(min_rt_s, max_rt_s)
+    ].copy()
+```
+:::
+::::
+
+Both versions return the same rows when called with 0.2 and 2.0 seconds. The `*` makes the bounds keyword-only in this teaching extraction, preventing a swapped positional call. The project's `filter_trials` additionally validates input and rejects an empty retained set. Validation is a deliberate extension, not merely a variable rename.
+
+## A concrete extraction sequence
+
+1. Restart Stage A, run all cells, and save its sorted condition summary as a baseline.
+2. Rename intermediate tables while preserving the expressions. Run again and compare.
+3. Extract one filter in the notebook. Supply the existing bounds by name and check inclusive boundaries.
+4. Extract the repeated participant aggregation, preserving error trials and participant weighting.
+5. Move these stable functions into `notebooks/helpers.py`. Import them into Stage B, restart, and rerun.
+6. When other notebooks and scripts need them, move responsibilities into `src/experiment/`, install the project, and use package imports in Stage C.
+7. Move run choices into the shared configuration and verify the baseline again. Commit the mechanical refactor separately from any alternative exclusion rule.
+
+Copying cells wholesale into a script moves the code but may preserve the same hidden dependencies. The useful transition is from implicit notebook state to explicit inputs and reusable results.
+
+## Test scientific equivalence, not the layout
+
+For this project, preserve condition names, retained trial counts, participant counts, accuracy, SEM, and mean participant median RT. Match rows by keys rather than relying on an accidental row order.
+
+```python
+import pandas as pd
+
+def assert_same_condition_results(before, after):
+    before = before.sort_values("condition").reset_index(drop=True)
+    after = after.sort_values("condition").reset_index(drop=True)
+    pd.testing.assert_frame_equal(before, after, atol=1e-12, rtol=1e-12)
+```
+
+The supplied tests execute all three notebooks in independent kernels and compare them with the package result. They also check RT boundaries, input immutability, and retention of incorrect trials. Equivalent summary values are necessary but do not prove every detail of an analysis correct; choose additional checks when the transformation demands them.
+
+## Preserve the unit of analysis
+
+Averaging all retained trials weights participants by retained-trial count. Averaging within-participant accuracy first gives each participant equal weight. A refactor that changes between these methods can produce a plausible figure and still change the answer.
+
+Likewise, filtering to correct trials before measuring accuracy makes it 100%. If median RT should use only correct trials in a different research design, implement that policy explicitly and do not apply it indiscriminately to the accuracy denominator. This teaching project includes errors in both metrics.
+
+## Imports should not run the experiment
+
+A reusable `.py` file should define functions without reading data or launching the full analysis at import time. The CLI uses `if __name__ == "__main__":` to run its entry point only when invoked as a script. Save `plot_results`'s returned figure from the script and display it from the notebook. Restart the notebook kernel after changing imported source when checking reference results.
+
+::: {.exercise}
+<span class="exercise-label">EXERCISE 03 · EXTRACT AND PROVE</span>
+
+### Move the trial rule into a module
+
+In a copy of Stage A, replace duplicated filters with a function in a neighboring `helpers.py`. Choose meaningful names, explicit unit-bearing parameters, and a returned table that does not mutate raw trials. Reuse it across conditions, then compare the full condition summary. Only after equivalence passes, try a new bound as a separate experiment.
+
+<details><summary>Hint</summary>Separate the extraction from the policy change. Preserve inclusive bounds and compute participant metrics before condition metrics.</details>
+<details><summary>Reveal solution and explanation</summary>
+
+Stage B's `clean_trials(raw_trials, min_rt_s=0.2, max_rt_s=2.0)` and `summarize(filtered_trials)` are the working solution. Stage C separates these responsibilities further and loads settings from TOML. The tests provide equivalence and boundary evidence. A commit that changes both the function structure and the exclusion policy is harder to review because a changed result has two possible causes.
+
+</details>
+:::
+
+```{=html}
+<form class="quiz exercise" data-answer="1" data-explanation="The function owns a scientific calculation. Configuration selects inputs and policy at the entry point; plotting presents results. Passing settings does not make the calculation configuration code."><div class="exercise-label">CODE REVIEW · MAKE A DECISION</div><fieldset><legend>A function calculates participant-level accuracy and RT. Where should it live?</legend><label><input type="radio" name="responsibility" value="0" required> plotting.py, because its output is eventually plotted</label><label><input type="radio" name="responsibility" value="1" required> analysis.py, with a documented participant-condition output table</label><label><input type="radio" name="responsibility" value="2" required> config.py, because it depends on the exclusion settings</label></fieldset><button type="submit">Check answer</button><p class="quiz-feedback" role="status" aria-live="polite"></p></form>
+```
+
+## Take it with you
+
+Extract a responsibility, make dependencies explicit, prove equivalence, then move files. Continue with [configuration and project boundaries](04-projects.qmd). If a helper module already serves your project well, keep that simpler structure until a real need justifies more.

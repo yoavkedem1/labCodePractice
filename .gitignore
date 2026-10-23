@@ -1,0 +1,17 @@
+# Local environments and generated artifacts
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ipynb_checkpoints/
+*.egg-info/
+site/_site/
+site/.quarto/
+site/downloads/*.zip
+motion-perception/results/*
+!motion-perception/results/.gitkeep
+motion-perception/data/processed/*
+!motion-perception/data/processed/.gitkeep
+.DS_Store
+site/assets/python-runtime/
+site/assets/browser-project.json

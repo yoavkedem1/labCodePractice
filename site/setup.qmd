@@ -1,0 +1,79 @@
+---
+title: "A little setup. A much smoother workshop."
+subtitle: "Prepare once, then spend the meeting exploring."
+---
+
+## What you need
+
+Bring a laptop with **Python 3.11**, **Git 2.28 or later**, and a text editor such as VS Code. Python 3.12 is also supported. The workshop assumes introductory programming and experience writing analysis code. Functions and basic Python syntax are assumed; examples use pandas tables. The first lesson starts with reviewing names, units, and responsibilities. A GitHub account is needed only for the optional remote part of the [Git lab](git-lab.qmd). All browser exercises work without an account.
+
+Install [Python](https://www.python.org/downloads/) and [Git](https://git-scm.com/downloads) before the meeting. Windows users can use Git Bash for the Git exercises, or PowerShell with the commands noted below. Use your editor's terminal or your usual shell. The commands below run from the extracted project root.
+
+```sh
+python --version
+git --version
+```
+
+On macOS/Linux your Python launcher may be `python3.11`; on Windows it may be `py -3.11`. Check that it reports 3.11 before creating the environment. Multiple Python installations are common; checking the exact interpreter matters.
+
+## Download and install the example
+
+[Download motion-perception.zip](downloads/motion-perception.zip), extract it, and open a terminal inside the extracted `motion-perception` directory. The archive has all three notebooks, the reusable package, tests, and the synthetic CSV. It contains no Git history or private data.
+
+::: {.panel-tabset}
+### macOS / Linux
+
+```sh
+python3.11 -m venv .venv
+source .venv/bin/activate
+python -m pip install -e ".[dev]"
+```
+
+### Windows PowerShell
+
+```powershell
+py -3.11 -m venv .venv
+.venv\Scripts\Activate.ps1
+python -m pip install -e ".[dev]"
+```
+
+If your institution blocks activation scripts, use `.venv\Scripts\python.exe -m pip install -e ".[dev]"` directly. You can also start Jupyter with `.venv\Scripts\python.exe -m jupyterlab`.
+:::
+
+`venv` creates a project-specific Python environment. Activation changes which `python` the terminal finds. `pip install -e` installs this project's package in editable mode: edits to the source are available without reinstalling. `[dev]` also installs the notebook and testing tools. This command needs internet access the first time.
+
+## Run the readiness check
+
+Inside the activated environment:
+
+```sh
+python -c "import sys; print(sys.executable)"
+python scripts/run_analysis.py
+python -m pytest
+python -m jupyterlab
+```
+
+The interpreter path should contain `.venv`. The analysis prints a clear/noisy condition table and writes `results/baseline/behavior.svg` and the effective settings in `results/baseline/run.json`. Tests should pass. In Jupyter, open `notebooks/01_exploration.ipynb`. Select the kernel belonging to this environment, restart it, and run all cells. The notebook checks its working directory and explains how to fix it if needed.
+
+::: {.callout-note title="Start in the browser if setup is slowing you down"}
+The [live notebook lab](notebook-lab.qmd) runs real Python, pandas, and Matplotlib on your device using a bundled WebAssembly runtime. Its first load is approximately 32 MB. The [Git practice room](git-playground.qmd) needs no installation. Both are account-free; the local project remains the route to using these habits in your own research. Browser and local dependency versions differ and are reported explicitly.
+:::
+
+## If something goes wrong
+
+| Symptom | Check | Next action |
+| --- | --- | --- |
+| `python` not found | Try the platform launcher above | Install Python and reopen the terminal |
+| `ModuleNotFoundError: experiment` | `python -c "import sys; print(sys.executable)"` | Activate `.venv`, rerun editable installation |
+| Notebook import fails | Kernel interpreter differs from terminal | Launch Jupyter using `python -m jupyterlab` in `.venv` |
+| `FileNotFoundError` | `Path.cwd()` in the notebook | Open the notebook from the extracted project |
+| Git asks who you are | Identity not configured | Follow the local identity setup in the Git lab |
+| Installation needs internet | Dependencies are not cached | Install before the meeting or pair with someone prepared |
+
+<details><summary>Optional tooling preparation · environments and imports</summary>
+
+If you usually run everything inside one notebook, use the preparation time to verify the selected kernel, editable installation, and current working directory. Run `python -c "import sys; print(sys.executable)"` in the terminal and notebook and compare the interpreter paths. Install the package in that environment rather than patching `sys.path`. The course does not repeat introductory Python; use the [official tutorial](https://docs.python.org/3/tutorial/) for an optional language refresher.
+
+</details>
+
+**Ready?** Start with [clean code and naming](modules/01-foundations.qmd), or use the [90-minute run sheet](workshop.qmd) during the lab meeting.

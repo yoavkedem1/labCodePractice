@@ -1,0 +1,164 @@
+---
+title: "The Git lab · review a new analysis configuration"
+subtitle: "Make the scientific choice visible in a focused diff, commit, and pull request."
+---
+
+## Before you start
+
+Complete [setup](setup.qmd) and read [staging and branches](modules/05-git.qmd). Use the downloaded `motion-perception` folder as your own practice repository. The archive has no `.git` directory. Use a disposable copy if you have already done this exercise. No private lab repository is needed. Commands below run in your extracted project root, with its environment activated.
+
+Git records the name and email you configure in commits. Use your GitHub-provided no-reply email if you prefer to keep your personal address private. Identity is not authentication.
+
+## 1 · Initialize and record the baseline
+
+```sh
+git init -b main
+git config user.name "Your Name"
+git config user.email "YOUR_NOREPLY_OR_OTHER_EMAIL"
+git status --short
+git add README.md LICENSE DATA-LICENSE.md pyproject.toml requirements-lock.txt .gitignore src scripts tests notebooks config data/README.md data/raw/trials.csv data/processed/.gitkeep results/.gitkeep
+git diff --staged --stat
+git commit -m "Add synthetic motion experiment baseline"
+```
+
+Replace the two identity values with your own. Configuration here is local to this practice repository. Review staged paths before committing. The `.gitignore` keeps your environment and generated outputs out. The synthetic CSV is safe to share; this would not establish permission to share real research data.
+
+**Checkpoint:** `git status` should report a clean working tree. If a file remains untracked, inspect it rather than blindly adding everything.
+
+## 2 · Record a baseline someone can check
+
+Run the baseline and inspect both its numeric result and run record:
+
+```sh
+python scripts/run_analysis.py --config config/analysis.toml
+python -m pytest
+```
+
+Create `RUN_NOTES.md` in your editor with the command, synthetic seed, configured bounds, and observed retained count and condition accuracies. State that accuracy includes errors and weights participants equally. The reference run retains 3,761 of 3,840 trials; mean accuracies are approximately 0.808111 (clear) and 0.713384 (noisy). Note the code revision from `git rev-parse HEAD` and the effective settings in `results/baseline/run.json`.
+
+```sh
+git diff
+git status --short
+git add RUN_NOTES.md
+git diff --staged
+git commit -m "Document baseline policy and reference result"
+git log --oneline -3
+```
+
+A newly created untracked file does not appear in plain `git diff`; `git status` identifies it and staging makes it available to `git diff --staged`. Commit the reusable run instructions and scientific explanation. Generated result files remain ignored in this workshop.
+
+## 3 · Add a sensitivity analysis on its own branch
+
+```sh
+git switch -c rt-sensitivity
+```
+
+Create `config/rt-050.toml` in your editor:
+
+```toml
+# Exploratory teaching comparison; keep the baseline unchanged.
+[paths]
+data = "../data/raw/trials.csv"
+output = "../results/rt-050"
+
+[preprocessing]
+min_rt_s = 0.5
+max_rt_s = 2.0
+```
+
+Run it without changing the algorithm. Inspect `results/rt-050/run.json` and compare the condition summaries with the baseline. Append the alternative policy, exploratory motivation, observed retained counts, and comparison to `RUN_NOTES.md`. Explain why passing tests does not establish that the new exclusion policy is scientifically appropriate.
+
+```sh
+python scripts/run_analysis.py --config config/rt-050.toml
+python -m pytest
+git status --short
+git diff -- RUN_NOTES.md
+git add config/rt-050.toml RUN_NOTES.md
+git diff --staged
+git commit -m "Add a documented 0.5-second RT sensitivity analysis"
+git log --oneline --graph --all
+```
+
+**Checkpoint:** the diff contains the new configuration and its explanation; no algorithm or baseline setting changed. Tests still compare the original three stages against the unchanged baseline. The new scientific choice is isolated for review. Raw data, `.venv`, and generated outputs are absent from the commit.
+
+<details><summary>Working without GitHub? Complete the local path.</summary>
+
+```sh
+git switch main
+git merge rt-sensitivity
+python -m pytest
+```
+
+Because main has no intervening commit, this normally fast-forwards it to the branch tip. Explain what the branch pointer does before merging. A hosted pull request is optional; the rest of this lab uses your own GitHub account.
+
+</details>
+
+## 4 · Create your own remote repository
+
+Sign in to GitHub and create a new **empty** repository named `motion-perception-practice`. Do not initialize a README, license, or `.gitignore` on GitHub: you already have local history. Public visibility is suitable only for these synthetic materials after inspecting them. Choose private if preferred.
+
+Keep the local `rt-sensitivity` branch unmerged if you want a meaningful pull request. Replace `YOUR_USER` below with your actual GitHub username:
+
+```sh
+git remote add origin https://github.com/YOUR_USER/motion-perception-practice.git
+git remote -v
+git push -u origin main
+git push -u origin rt-sensitivity
+```
+
+Use GitHub's supported browser/credential-manager authentication or a configured SSH remote. Account passwords are not used for HTTPS Git authentication. Do not paste tokens into repository URLs or commit them. See [GitHub authentication](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/about-authentication-to-github).
+
+`push` uploads missing commits and updates the named remote branch. The `-u` flag sets a tracking relationship. The main push shares the baseline and documentation change; the feature push shares the alternative configuration and its rationale on a separate branch.
+
+## 5 · Open and review a pull request
+
+On your GitHub repository, choose **Pull requests → New pull request**. Set **base: main** and **compare: rt-sensitivity**. Inspect the diff: it should add the new configuration and update run notes. Use a title such as “Add an exploratory 0.5 s RT sensitivity analysis.” Explain the motivation, the changed trial selection and observed results, that the baseline and calculation code are unchanged, and the checks run. Review the data path, units, output separation, and effective settings—not just whether the file is valid TOML.
+
+Ask a workshop partner to review if available. You can also inspect the Files changed tab yourself for practice; a self-review is not an independent scientific check. Confirm that no participant data, local environment, or unexpected notebook outputs are included.
+
+## 6 · Merge and synchronize
+
+Use GitHub's merge button once review is complete. Back in the local repository:
+
+```sh
+git switch main
+git pull --ff-only origin main
+python -m pytest
+git log --oneline --graph --all
+```
+
+The exact graph depends on GitHub's selected merge method (merge commit, squash, or rebase). A successful fast-forward pull updates local main to the hosted result. If it refuses, inspect `git status` and the graph before taking any recovery action. Do not force a push to make the warning disappear.
+
+## Optional · start from a clone instead
+
+If you already have an accessible copy on GitHub, clone that actual URL into a new folder rather than running `git init` there:
+
+```sh
+git clone https://github.com/YOUR_USER/motion-perception-practice.git
+cd motion-perception-practice
+```
+
+Cloning configures origin and checks out the remote default branch. Recreate the Python environment; do not expect `.venv` to come from Git. Use a new branch name for a repeated exercise.
+
+::: {.exercise}
+<span class="exercise-label">CHECKPOINT · INTERPRET THE STATE</span>
+
+### One file, two changes
+
+You edit a file, stage it, then edit it again. `git status --short` shows `MM config/rt-050.toml`. Which edit goes into a commit now? What command stages the later edit too?
+
+<details><summary>Hint</summary>The two columns describe different comparisons.</details>
+<details><summary>Reveal solution and explanation</summary>
+
+The staged snapshot enters the commit; the later working edit stays outside it. Run `git diff --staged` to inspect the first change and `git diff` for the second. `git add config/rt-050.toml` updates the staged snapshot to the latest saved content.
+
+</details>
+:::
+
+## Optional · a real conflict exercise
+
+In a disposable practice copy with a clean main branch, create `conflict-a`, change `min_rt_s` in `config/sensitivity.toml` from 0.6 to 0.5, and commit. Switch to main, create `conflict-b`, change the same config value from 0.6 to 0.7, and commit. On `conflict-b`, run `git merge conflict-a`. Inspect the conflict markers and status. Decide the intended value, remove the markers, test, stage, and commit. Alternatively, `git merge --abort` cancels the unresolved merge.
+
+The two proposed bounds are an exercise, not a justified exclusion change. Review whether a scientific threshold change should be made at all. A textual conflict resolution must also preserve the intended policy and a distinct output directory. Both config values may pass validation; scientific review still decides which policy belongs in the analysis.
+
+**Finished?** Continue with [the reproducibility handoff](modules/06-reproducibility.qmd).

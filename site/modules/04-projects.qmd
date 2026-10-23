@@ -1,0 +1,156 @@
+---
+title: "04 · Configure a reproducible research project"
+subtitle: "Shared settings, clear module boundaries, and a run you can explain."
+---
+
+::: {.lesson-meta}
+35 minutes · Assumes Python modules and analysis experience · Project stage C
+:::
+
+## What you will learn
+
+- Organize code by responsibility rather than by the chronology of notebook cells.
+- Keep scientific parameters and paths in a reviewed configuration file.
+- Load and validate configuration once, then pass explicit values into calculations.
+- Run the same pipeline from a notebook or terminal and preserve effective settings.
+
+A project structure helps only when a researcher can find the exclusion rule, understand the imports, and rerun the analysis without editing source files. We use a small installed package and TOML configuration; no application framework is required.
+
+## Give each file a job
+
+```text
+motion-perception/
+├── config/
+│   ├── analysis.toml         # baseline paths and exclusion policy
+│   └── sensitivity.toml      # alternative policy, separate output directory
+├── data/raw/trials.csv       # immutable synthetic input
+├── notebooks/               # exploration, extracted helpers, project interface
+├── src/experiment/
+│   ├── __init__.py
+│   ├── config.py            # parse and validate settings
+│   ├── preprocessing.py     # validate and filter trial tables
+│   ├── analysis.py          # participant and condition metrics
+│   ├── plotting.py          # scientific presentation
+│   ├── workflow.py          # coordinate a run and export its record
+│   └── simulation.py        # deterministic data generation
+├── scripts/run_analysis.py  # parse command-line options; call the workflow
+├── tests/                   # behavior, configuration, and notebook equivalence
+├── results/                 # generated outputs; ignored by Git
+├── pyproject.toml           # package and dependency declarations
+├── requirements-lock.txt    # tested environment resolution
+├── README.md
+└── .gitignore
+```
+
+The workflow coordinates I/O; calculation functions accept tables and numbers. The config loader owns parsing, not statistics. A notebook remains a caller of this package. Smaller projects can combine modules until those responsibilities need independent reuse or testing.
+
+## Put scientific choices in configuration {#configuration}
+
+Open the actual `config/analysis.toml`:
+
+```toml
+# Paths are relative to this configuration file.
+[paths]
+data = "../data/raw/trials.csv"
+output = "../results/baseline"
+
+[preprocessing]
+min_rt_s = 0.2
+max_rt_s = 2.0
+```
+
+A labmate can now review the exclusion policy without searching notebook cells or editing the algorithm. The parameter names carry units. Correctness is still an observed trial value, not a configurable setting. Keep algorithms in Python; keep run choices in configuration. Do not turn one config file into a second programming language with expressions or arbitrary function names.
+
+TOML supports comments and numeric types and can be read with Python 3.11's standard-library `tomllib`. The supplied `load_config` rejects unknown or missing keys, strings or booleans where bounds should be numeric, non-finite values, and invalid bound order. A typo such as `min_rt` fails instead of quietly selecting a fallback.
+
+```python
+from pathlib import Path
+from experiment.config import load_config
+from experiment.preprocessing import load_trials, filter_trials
+
+config = load_config(Path("config/analysis.toml"))
+raw_trials = load_trials(config.data_path)
+filtered_trials = filter_trials(
+    raw_trials, min_rt_s=config.min_rt_s, max_rt_s=config.max_rt_s
+)
+```
+
+Read configuration at the entry point. A filter should not reopen the TOML file or read a module global on each call: passing the two values makes dependencies clear, allows testing, and lets another caller supply an alternative policy.
+
+<details><summary>Implementation detail · a dictionary or a dataclass?</summary>
+
+Stage B starts with a dictionary of named settings. Stage C's loader returns a small `AnalysisConfig` dataclass with named fields. `frozen=True` prevents ordinary reassignment after loading; it is not a general guarantee of deep immutability. Type annotations document intent but do not perform validation, so the loader and record constructor check the required behavior explicitly. You do not need a class hierarchy or a third-party configuration framework for four settings.
+
+</details>
+
+## Define path semantics once
+
+Relative paths in this project's TOML are resolved from the **configuration file's directory**. A notebook launched in `notebooks/` and a script launched elsewhere therefore use the same data. The default config location is resolved from the script's `__file__`; the notebook resolves its project root explicitly. Do not call `os.chdir` throughout an analysis to make arbitrary relative paths work.
+
+Command-line overrides are different: `--data` and `--output` are resolved from the terminal's working directory. The documented precedence is **explicit CLI values override file values**; missing CLI options leave the reviewed file values intact. `run.json` records the effective values, including overrides, rather than simply copying the original TOML.
+
+## Run baseline and sensitivity analyses
+
+From the extracted project root:
+
+```sh
+python scripts/run_analysis.py --config config/analysis.toml
+python scripts/run_analysis.py --config config/sensitivity.toml
+```
+
+The baseline retains 0.2–2.0 s RTs. The sensitivity example raises the minimum to 0.6 s and writes to a different directory. It is a teaching comparison, not a justified scientific change. Inspect whether it changes condition-specific trial counts and the estimated accuracy difference.
+
+```text
+results/
+├── baseline/
+│   ├── conditions.csv
+│   ├── participants.csv
+│   ├── behavior.svg
+│   └── run.json
+└── sensitivity/
+    └── ...same output types...
+```
+
+Each `run.json` records the resolved bounds and paths, inclusion policy, input SHA-256 hash, raw/retained counts, timestamp, and software versions. A hash identifies the exact input bytes; it does not provide access to data or explain their provenance. Keep the generator, data dictionary, seed, and code revision too. Reusing an output directory replaces its generated files; choose distinct directories for distinct analyses.
+
+For a quick override, use `python scripts/run_analysis.py --min-rt 0.6 --output results/quick-check`. For a result you will discuss or reuse, prefer committing a named config so the choice can be reviewed. Do not overwrite the baseline with an undocumented override.
+
+## Make imports independent of notebook location
+
+Install from the project root with `python -m pip install -e ".[dev]"`. The distribution is named `motion-perception-workshop`; its importable package is `experiment`, discovered under `src/`. The source-layout directory `src` is not part of the import name.
+
+```python
+from experiment.analysis import participant_summary
+from experiment.config import load_config
+```
+
+Python locates installed modules through the active interpreter's import path; it does not search every project subdirectory. Avoid `sys.path.append` patches copied between notebooks. Check the kernel's interpreter and editable installation first. Do not name local files `pandas.py` or `tomllib.py`, which can shadow the intended imports.
+
+## Environment isolation is necessary, but not sufficient
+
+Recreate `.venv` on each machine and install the tested dependency lock. Do not copy an environment folder or commit it. `pyproject.toml` declares dependencies; `requirements-lock.txt` records the tested resolution. Neither records which exclusion parameters produced a particular figure—that is the config and run record's responsibility. See [setup](../setup.qmd) for platform commands and [the handoff](06-reproducibility.qmd) for provenance.
+
+## Test risks that matter
+
+The example tests check inclusive RT boundaries, preservation of error trials, participant weighting, invalid config rejection, path resolution from an unrelated working directory, CLI override recording, and preservation of baseline output during sensitivity runs. They also execute all three stages and compare their scientific results.
+
+A useful new test is “a misspelled exclusion key stops the run before outputs are created.” A test that simply copies the implementation's grouping expression may reproduce the same error. A tiny unbalanced-participant dataset is better evidence that weighting is correct.
+
+::: {.exercise}
+<span class="exercise-label">EXERCISE 04 · A REVIEWABLE RUN SPECIFICATION</span>
+
+### Add an alternative analysis without editing the algorithm
+
+Copy the baseline TOML to `config/rt-050.toml`. Set the minimum to 0.5 s and output to `../results/rt-050`. Run it from the project root, then from another directory using absolute script and config paths. Compare the saved effective configuration and verify the baseline CSV did not change. Finally misspell `min_rt_s` and check the error.
+
+<details><summary>Hint</summary>Only the config should select the new threshold. Paths inside it remain relative to the file, not the terminal. Passing `--config` chooses a file; it does not change the working directory.</details>
+<details><summary>Reveal solution and explanation</summary>
+
+Use the same sections as `analysis.toml`, with `min_rt_s = 0.5` and `output = "../results/rt-050"`. Run `python scripts/run_analysis.py --config config/rt-050.toml`. The loader resolves the data consistently and the workflow records 0.5 in `run.json`. A misspelled key raises an error rather than using 0.2. The complete worked config and Git commands are in [the Git lab](../git-lab.qmd).
+
+</details>
+:::
+
+## Take it with you
+
+A useful project separates algorithms, run settings, entry points, and generated outputs. Configuration must be explicit, validated, shared between callers, and recorded. Next: [review and version these changes with Git](05-git.qmd). References: [tomllib](https://docs.python.org/3.11/library/tomllib.html), [dataclasses](https://docs.python.org/3.11/library/dataclasses.html), and [Python modules](https://docs.python.org/3/tutorial/modules.html).

@@ -1,0 +1,82 @@
+project:
+  type: website
+  output-dir: _site
+  render:
+    - "*.qmd"
+    - "modules/*.qmd"
+  resources:
+    - assets/
+    - downloads/
+website:
+  title: "Research / Code"
+  description: "A practical Python and Git workshop for neuroscience researchers. One experiment, from exploratory notebook to reproducible research."
+  page-navigation: true
+  search:
+    location: navbar
+    type: overlay
+  navbar:
+    title: "research <span class='brand-slash'>/</span> code"
+    background: light
+    right:
+      - text: "90-minute workshop"
+        href: workshop.qmd
+      - text: "Get the materials ↗"
+        href: resources.qmd
+  sidebar:
+    style: docked
+    background: light
+    collapse-level: 2
+    contents:
+      - text: "Overview"
+        href: index.qmd
+      - text: "Setup & prerequisites"
+        href: setup.qmd
+      - section: "THE LEARNING PATH"
+        contents:
+          - text: "01 · Clean code & naming"
+            href: modules/01-foundations.qmd
+          - text: "02 · The notebook interface"
+            href: modules/02-notebooks.qmd
+          - text: "03 · From cells to functions"
+            href: modules/03-refactoring.qmd
+          - text: "04 · Projects & configuration"
+            href: modules/04-projects.qmd
+          - text: "05 · Git & GitHub"
+            href: modules/05-git.qmd
+          - text: "06 · Reproducible together"
+            href: modules/06-reproducibility.qmd
+      - section: "LABS & PRACTICE"
+        contents:
+          - text: "Notebook lab"
+            href: notebook-lab.qmd
+          - text: "Git practice room"
+            href: git-playground.qmd
+          - text: "Handoff & practice"
+            href: practice.qmd
+          - text: "The Git lab"
+            href: git-lab.qmd
+          - text: "Workshop run sheet"
+            href: workshop.qmd
+          - text: "Downloads & reference"
+            href: resources.qmd
+  page-footer:
+    left: "Research / Code · A workshop for the curious lab"
+    right: "Synthetic data. Real research habits. · November 2026"
+format:
+  html:
+    theme:
+      light: [cosmo, assets/theme.scss]
+      dark: [darkly, assets/theme.scss]
+    css: assets/style.css
+    toc: true
+    toc-title: "ON THIS PAGE"
+    code-copy: true
+    code-overflow: wrap
+    highlight-style: github
+    include-after-body:
+      - text: '<script type="module" src="/assets/workshop.js"></script>'
+    link-external-newwindow: true
+    smooth-scroll: false
+lang: en
+execute:
+  enabled: false

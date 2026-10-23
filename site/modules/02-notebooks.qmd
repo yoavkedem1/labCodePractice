@@ -1,0 +1,128 @@
+---
+title: "02 · Make the notebook an analysis interface"
+subtitle: "Keep exploration flexible while making a saved run explainable."
+---
+
+::: {.lesson-meta}
+20 minutes · Assumes notebook and pandas experience · Project stage A
+:::
+
+## What you will learn
+
+- Separate an analysis narrative from reusable processing code.
+- Recognize mutation, cached imports, and parameter drift as reproducibility risks.
+- Arrange a notebook around an explicit run specification and inspectable intermediate results.
+- Decide which exploratory work should remain in a notebook.
+
+A useful research notebook exposes the question, input provenance, chosen parameters, diagnostics, results, and interpretation. It does not need to contain every implementation detail. We keep the notebook and reduce the number of things a reader must remember to rerun it correctly.
+
+## First, experience hidden state
+
+[Open the live notebook lab](../notebook-lab.qmd#state). It runs real pandas against the same synthetic CSV without installing Python. Predict the retained count before each action:
+
+1. Run all three starter cells: the baseline retains **3,761** trials.
+2. Change the first cell's minimum from 0.2 to 0.6 seconds. Run cell 1 and then cell 3, skipping cell 2.
+3. The displayed policy changes, but the existing table still has 3,761 trials. Explain which assignment has not executed.
+4. Restart and run all. The stricter policy now retains **3,461** trials. Compare the execution history and live variable inspector.
+
+Python executes the cells you request. It does not build a dependency graph that recomputes every downstream table automatically. A cell's displayed source and an earlier saved output can describe different procedures. Counters and output labels are clues; a fresh run is a stronger check.
+
+Then try [module extraction](../notebook-lab.qmd#refactor): implement a helper, save it into a real virtual `.py` file, import it into a cell, and check the complete numerical result. [Configuration](../notebook-lab.qmd#config) and [fresh handoff](../notebook-lab.qmd#handoff) extend the same project.
+
+## Audit the existing analysis
+
+Open `notebooks/01_exploration.ipynb` from the [materials](../resources.qmd). It is executable, but loading, repeated filters, aggregation, and plotting are mixed together. Before editing, restart and run all, save the condition table, and identify every place the RT rule appears.
+
+Now ask a maintenance question: **if the exclusion policy changes, which cells and files need to change, and how will someone know which rule produced the figure?** The answer guides extraction much better than an arbitrary cell-length limit.
+
+## Four failure modes worth checking
+
+| Failure mode | Example in a real analysis | How to expose it |
+| --- | --- | --- |
+| Hidden execution dependency | A filter reads an older `min_rt_s` from a previous run | Restart and run all; pass explicit values |
+| In-place mutation | A later cell adds or deletes rows from the only trial table | Keep `raw_trials` and return new derived tables |
+| Stale imported implementation | A helper is edited on disk but the kernel still uses its previous function | Restart after module edits, or deliberately reload during development |
+| Parameter drift | The notebook uses 0.2 s while the script uses 0.25 s | Load the same reviewed configuration at both entry points |
+
+Execution counters help diagnose order, but do not prove that saved outputs match the current code, configuration, or input files. Restarting clears Python state; it does not undo CSVs already overwritten on disk. Label cells that export results.
+
+## Give the notebook a small, visible interface
+
+A useful arrangement is **question → run specification → inputs → checks → analysis → figure → interpretation**. The Stage C notebook follows this pattern:
+
+```python
+# The first cell resolves project_root from the notebook location.
+from experiment.config import load_config
+from experiment.preprocessing import load_trials, filter_trials
+from experiment.analysis import participant_summary, condition_summary
+
+# Example assumes you are running from the project root.
+from pathlib import Path
+config = load_config(Path("config/analysis.toml"))
+raw_trials = load_trials(config.data_path)
+filtered_trials = filter_trials(
+    raw_trials, min_rt_s=config.min_rt_s, max_rt_s=config.max_rt_s
+)
+participant_metrics = participant_summary(filtered_trials)
+condition_metrics = condition_summary(participant_metrics)
+```
+
+The complete notebook resolves the config path from its detected project root, rather than assuming the kernel's working directory. It displays the selected RT limits, condition counts, and summary. The same configuration drives the command-line run. A configuration object is a run specification; do not hide it inside every analysis function.
+
+Keep diagnostics near the relevant transformation. After filtering, compare retained counts by condition. Before interpreting accuracy, verify that error trials are still included. When a surprising result appears, inspect the intermediate table that produced it instead of debugging a long chain of operations inside the plotting cell.
+
+## Keep exploration separate from the reference result
+
+Suppose you want to inspect a 0.6 s minimum RT. Use a distinct configuration or a clearly named exploratory table, and preserve the baseline:
+
+```python
+# Using the same raw_trials and project-root working directory as above.
+sensitivity_config = load_config(Path("config/sensitivity.toml"))
+sensitivity_trials = filter_trials(
+    raw_trials,
+    min_rt_s=sensitivity_config.min_rt_s,
+    max_rt_s=sensitivity_config.max_rt_s,
+)
+print({"baseline": len(filtered_trials), "sensitivity": len(sensitivity_trials)})
+```
+
+A stricter rule can remove different numbers of trials across conditions. Keeping separate names makes that comparison possible. Document the motivation before treating the alternative as the primary analysis. Moving a choice into a config file does not scientifically justify it.
+
+## Read an error as a clue about the interface
+
+If `from helpers import clean_trials` succeeds but calling it raises `NotImplementedError`, Python found the module and function; the starter function still needs an implementation. If the import raises `ModuleNotFoundError`, inspect the selected kernel, installation, module location, and working directory before changing the algorithm. If `load_config` rejects `min_rt`, fix the misspelled key rather than adding another hardcoded default in a later cell.
+
+In [mission 2](../notebook-lab.qmd#refactor), replace the unfinished helper and save it. Rerun the import cell and its dependent analysis. The lab invalidates its cached helper module when you save; in ordinary Jupyter, a saved module usually remains cached until restart or deliberate reload. Old function bindings and derived tables still require rerunning. For the shared reference result, restart and run all.
+
+## Review the saved notebook, too
+
+Before handing it over, inspect both source and output changes: did a figure actually come from the new settings, are the retained counts visible, and does the prose match the result? Notebook files also contain execution counts, cell IDs, and metadata. These can create noisy diffs. Clear unnecessary transient outputs according to your team's convention, retain useful scientific evidence when appropriate, and review the rerun before committing. Never leave participant identifiers or secrets in outputs.
+
+## What should stay in a notebook?
+
+Keep hypothesis sketches, one-off diagnostic plots, exploratory comparisons, and interpretation where they help you reason. Extract a stable filter, a repeated participant summary, or shared figure logic when multiple callers need the same behavior. Avoid moving the whole notebook into one long `analysis.py` file and calling it organized: the dependencies and responsibilities would still be entangled.
+
+<details><summary>Development detail · editing imported functions</summary>
+
+Python caches imported modules in a running kernel. With `from helpers import summarize`, an existing name can still reference the old function after the file is saved. Restart and rerun for a reference result. IPython autoreload can shorten development loops, but it does not validate a run or rerun dependent analysis cells automatically.
+
+</details>
+
+::: {.exercise}
+<span class="exercise-label">EXERCISE 02 · DESIGN THE NOTEBOOK INTERFACE</span>
+
+### Make a parameter change traceable
+
+Inspect Stage A and sketch the notebook you would want a labmate to receive. Mark the cells that load data, choose policy, calculate, draw, and write files. Give the baseline and sensitivity tables separate names. Specify what should be printed or recorded so a saved figure can be traced back to the settings.
+
+<details><summary>Hint</summary>The notebook should coordinate a run, not ask imported functions to discover notebook globals. Keep the source data intact.</details>
+<details><summary>Reveal solution and explanation</summary>
+
+Stage C loads `config/analysis.toml` once, passes its bounds to `filter_trials`, computes participant then condition metrics, and plots them. The optional comparison loads `config/sensitivity.toml` and uses `sensitivity_trials`. The script exports effective settings, input hash, counts, and software versions to `run.json`; the notebook displays settings and diagnostics. A fresh-kernel run must recreate the baseline before the sensitivity comparison.
+
+</details>
+:::
+
+## Take it with you
+
+Treat a saved notebook as an inspectable analysis interface: explicit settings, stable raw data, named intermediate tables, and a rerunnable narrative. Next: [move repeated logic into Python modules](03-refactoring.qmd). Reference: [JupyterLab notebooks](https://jupyterlab.readthedocs.io/en/stable/user/notebook.html).

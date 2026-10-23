@@ -1,0 +1,49 @@
+---
+title: "90 minutes. One experiment. Better habits."
+subtitle: "A facilitator's run sheet for the November 2026 lab meeting."
+---
+
+## Before the meeting
+
+Send participants the [setup page](setup.qmd) and [materials](resources.qmd). Ask them to install dependencies before arriving, or pre-load the browser Python lab while internet is available. Pair participants when experience varies; one person edits while the other explains the next step. Keep the website open beside the notebook and terminal. The core modules take about three hours; completing every optional lab adds about an hour. This schedule selects missions instead of attempting all of them.
+
+```{=html}
+<div class="schedule">
+<div class="schedule-block"><div class="schedule-time">00–10 min</div><div><h3>Why research code gets tangled</h3><p>Show the Stage A notebook. Review names, units, repeated rules, and aggregation level. Ask which assumptions are visible and which require guessing. Establish the synthetic analysis baseline.</p><a href="modules/01-foundations.html">Code review & meaningful names →</a> · <a href="resources.html">Open the notebooks →</a></div></div>
+<div class="schedule-block"><div class="schedule-time">10–30 min</div><div><h3>Keep the notebook. Extract the useful parts.</h3><p>Use 8 minutes for hidden state: predict, change the rule, skip a dependent cell, and diagnose the mismatch. Use 12 minutes to extract the filter into helpers.py, compare summaries, and explain the boundary check. One partner drives; the other predicts.</p><a href="notebook-lab.html#state">Live notebook missions 1–2 →</a> · <a href="modules/03-refactoring.html">Code explorer & refactoring exercise →</a></div></div>
+<div class="schedule-block"><div class="schedule-time">30–55 min</div><div><h3>Give the analysis a project</h3><p>Spend 10 minutes editing and validating TOML in notebook mission 3; then inspect the local project layout, effective run record, and one boundary test. Use the remaining 5 minutes for a fresh-kernel figure and partner explanation.</p><a href="notebook-lab.html#config">Configuration mission →</a> · <a href="modules/04-projects.html">Project & tests →</a></div></div>
+<div class="schedule-block"><div class="schedule-time">55–85 min</div><div><h3>Make a change you can explain</h3><p>Spend 8 minutes on selective staging (mission 1), 10 on explicit conflict resolution or remote review (mission 3 or 4), and 12 transferring the workflow to the real teaching repo. GitHub account setup is optional follow-up; do not try all five missions live.</p><a href="git-playground.html">Git practice room →</a> · <a href="git-lab.html">Start the practical Git lab →</a></div></div>
+<div class="schedule-block"><div class="schedule-time">85–90 min</div><div><h3>Recap and choose your next small step</h3><p>Close the notes. Ask each partner to explain stale state, the index, and a server merge. Record one change to make in an existing notebook and one date to retry from memory.</p><a href="practice.html">Save a personal handoff plan →</a></div></div>
+</div>
+```
+
+## Facilitation notes
+
+If installation takes longer than expected, pair up and use the browser exercises. Do not spend the entire Git segment fixing account authentication: the local workflow is complete without GitHub. Keep scientific method changes separate from mechanical refactoring. Ask participants to predict a result before running a cell or Git action.
+
+At each transition, show the same input dataset and compare the clear/noisy summary. The goal is a researcher who can reason about an analysis, not someone who can memorize every command.
+
+## Questions to make the reasoning visible
+
+Pause before the result appears: “Which table will change?”, “Which snapshot will this commit use?”, or “Which branch pointer will move?” Give pairs 30 seconds to predict. After a check passes, ask the observer to explain the evidence before switching roles. A correct click sequence without an explanation is a cue to repeat one smaller scenario.
+
+If a pair finishes early, give them a perturbation: remove error trials, save a misspelled config key, edit after staging, or advance server main after review. Have them identify the first check that should fail. Use the worked solutions after the first attempt, then reset and retry without the solution visible.
+
+## Optional tooling preparation
+
+Reserve preparation time before the meeting for environments, editable installation, and Jupyter kernel selection, using [setup](setup.qmd). Participants have already taken introductory programming; do not use the live session for variables, loops, or function syntax. If someone needs a language refresher, direct them to a reference outside the main learning path.
+
+## Finish early? Follow the scientific consequence
+
+- Add a retained-trial-count table for each participant and condition. Test that retained plus removed equals raw count.
+- Compare pooled-trial accuracy with mean participant accuracy. Explain why they may differ after exclusions.
+- Create a branch that adds an output CSV for empirical choice curves. Ask a partner to review the responsibilities and units.
+- Reproduce the project from a clean copy using the tested dependency lock. Record the environment and commit.
+
+Each extension should leave the original result intact unless the method is intentionally changed and documented.
+
+## Recap {#recap}
+
+**Names that communicate the science. Functions with explicit contracts. Notebooks that call reusable modules. Configuration that records the choices. Git that makes changes reviewable.**
+
+Choose one existing notebook, one ambiguous name, one repeated calculation, and one hardcoded scientific parameter to improve this week. Start small, compare the answer, and ask someone else to rerun it. Continue with [the self-paced modules](index.qmd) and [downloads and reference](resources.qmd).

@@ -1,0 +1,81 @@
+---
+title: "Notebook lab"
+subtitle: "A real Python workspace for better research code."
+toc: false
+---
+
+```{=html}
+<div class="lab-intro"><span class="status-pill"><span class="status-dot"></span> Interactive workspace</span><span>4 missions · ~40 minutes</span><span>No installation needed</span></div>
+<div class="interactive-lab notebook-lab" data-notebook-lab>
+<nav class="lab-missions" aria-label="Notebook missions">
+<button type="button" id="state" data-scenario="state"><span class="step-number">01</span><span>Hidden state<small>Trace what actually ran</small></span></button>
+<button type="button" id="refactor" data-scenario="refactor"><span class="step-number">02</span><span>Extract a module<small>Give your code a home</small></span></button>
+<button type="button" id="config" data-scenario="config"><span class="step-number">03</span><span>Configuration<small>Make choices explicit</small></span></button>
+<button type="button" id="handoff" data-scenario="handoff"><span class="step-number">04</span><span>Fresh handoff<small>Reproduce the result</small></span></button>
+</nav>
+<div class="lab-layout">
+<div role="complementary" class="mission-card" aria-labelledby="notebook-mission-title">
+<div class="panel-eyebrow"><span data-icon="target"></span> THE TASK</div><h2 id="notebook-mission-title" data-lab-title>Choose a mission</h2>
+<p data-lab-goal></p>
+<div class="mission-actions"><button type="button" class="primary-action" data-check-mission><span data-icon="check"></span> Check mission</button><a class="check-summary" data-check-summary href="#mission-feedback" hidden></a><button type="button" class="text-action" data-reset-lesson>Reset exercise</button></div>
+<details class="mission-instructions" data-mission-instructions open><summary>Mission steps</summary><ol data-lab-steps></ol></details>
+<details><summary>Write a prediction</summary><label for="notebook-prediction">What do you expect, and why?</label><textarea id="notebook-prediction" data-prediction rows="3" placeholder="Predict first. Run second."></textarea></details>
+<details><summary>Need a hint?</summary><p data-lab-hint></p></details>
+<details><summary>Worked solution</summary><p data-lab-explanation></p><button type="button" data-solution>Load worked solution</button><p class="small-note">Run and check the source to verify the result.</p></details>
+
+<p class="small-note">Predict → run → change → explain.</p>
+</div>
+<section class="notebook-workspace" aria-label="Python workspace">
+<div class="workspace-heading"><div><span class="workspace-icon" data-icon="folder"></span><strong>motion-perception</strong><span class="workspace-separator">/</span><span>workspace</span></div><span class="language-badge">Python</span></div>
+<div class="workspace-toolbar" role="group" aria-label="Python kernel controls">
+<button type="button" class="primary-action" data-run-all="current"><span data-icon="play"></span> Run All</button>
+<button type="button" data-run-all="fresh"><span data-icon="restart"></span> Restart &amp; Run All</button>
+<button type="button" data-start-python>Start Python</button>
+<button type="button" class="stop-action" data-stop-python disabled><span data-icon="stop"></span> Stop</button>
+</div>
+<div class="kernel-line"><span class="status-dot" aria-hidden="true"></span><p role="status" aria-live="polite" data-kernel-status>Python has not started.</p></div>
+<div class="lab-tabs" role="tablist" aria-label="Workspace files" data-workspace-tabs>
+<button type="button" id="tab-notebook" role="tab" aria-selected="true" aria-controls="pane-notebook" data-pane="notebook"><span data-icon="notebook"></span> analysis.ipynb</button>
+<button type="button" id="tab-helper" role="tab" aria-selected="false" aria-controls="pane-helper" data-pane="helper" tabindex="-1"><span class="file-type">py</span> helpers.py</button>
+<button type="button" id="tab-config" role="tab" aria-selected="false" aria-controls="pane-config" data-pane="config" tabindex="-1"><span data-icon="sliders"></span> analysis.toml</button>
+<button type="button" id="tab-inspect" role="tab" aria-selected="false" aria-controls="pane-inspect" data-pane="inspect" tabindex="-1"><span data-icon="search"></span> Inspect</button>
+</div>
+<div id="pane-notebook" class="workspace-pane" role="tabpanel" aria-labelledby="tab-notebook" data-pane-content="notebook">
+<div class="editor-caption"><span data-icon="code"></span> Shared kernel · run cells in any order<span><kbd>Shift</kbd> + <kbd>Enter</kbd> to run</span></div>
+<div data-cells></div>
+</div>
+<div id="pane-helper" class="workspace-pane file-pane" role="tabpanel" aria-labelledby="tab-helper" data-pane-content="helper" hidden>
+<div class="file-heading"><label for="helper-editor">helpers.py <small>Reusable processing</small></label><button type="button" class="primary-action" data-save-file="helpers.py"><span data-icon="save"></span> Save helpers.py</button></div>
+<p class="file-guidance">Save your function, then return to <strong>analysis.ipynb</strong> and rerun the import cell. Existing names do not update automatically.</p>
+<textarea id="helper-editor" class="code-editor" data-helper rows="15" spellcheck="false"></textarea>
+</div>
+<div id="pane-config" class="workspace-pane file-pane" role="tabpanel" aria-labelledby="tab-config" data-pane-content="config" hidden>
+<div class="file-heading"><label for="config-editor">config/analysis.toml <small>Run specification</small></label><button type="button" class="primary-action" data-save-file="config/analysis.toml"><span data-icon="save"></span> Save analysis.toml</button></div>
+<p class="file-guidance">Save these settings, then rerun the notebook's config-loading and analysis cells. Keep alternative outputs separate from the baseline.</p>
+<textarea id="config-editor" class="code-editor" data-config rows="15" spellcheck="false"></textarea>
+</div>
+<div id="pane-inspect" class="workspace-pane" role="tabpanel" aria-labelledby="tab-inspect" data-pane-content="inspect" hidden>
+<div class="inspector-grid"><section><h3>Live variables</h3><p>The names currently held by this kernel.</p><pre data-variables>No live variables.</pre></section><section><h3>Execution history</h3><p>The order in which cells actually ran.</p><pre data-execution-log></pre></section></div>
+</div>
+<div class="workspace-bottom"><span><span data-icon="shield"></span> Runs on your device · first load ~32 MB</span><details class="download-menu"><summary><span data-icon="download"></span> Export work</summary><div class="lab-controls"><button type="button" data-download="notebook">Download .ipynb</button><button type="button" data-download="helper">Download helpers.py</button><button type="button" data-download="config">Download analysis.toml</button></div></details></div>
+</section>
+</div>
+<div class="mission-result-panel" id="mission-feedback"><div class="panel-eyebrow">MISSION FEEDBACK</div><pre class="mission-feedback" role="status" aria-live="polite" data-mission-result>Not checked yet.</pre></div>
+<p class="small-note lab-footnote">Source edits and predictions are saved in this browser when storage is available. Restart clears live variables and reapplies the current file editors. Download your work to keep a portable copy.</p>
+<noscript><p>Enable JavaScript to use the live lab, or download the project and run the complete notebooks locally.</p></noscript>
+</div>
+```
+
+## What counts as evidence?
+
+A passed mission check means particular assertions passed. In mission 2, the checks compare inclusive boundaries, retained rows, raw input preservation, and the full condition summary against the reference. They do not prove that every possible input is handled or that the exclusion policy is scientifically justified. Explain why the check matters, then test an input of your own.
+
+A restart clears Python variables and virtual filesystem changes. The editors are reapplied to the new virtual project. **Run All** uses the existing kernel; **Restart & Run All** creates a new one. Mission 4 always performs a fresh run before checking. For a real handoff, also recreate the local environment and inputs.
+
+## Take it into your own project
+
+[Download the complete project](downloads/motion-perception.zip), install it using [setup](setup.qmd), and run the saved Stage A/B/C notebooks in Jupyter. Exported lab notebooks expect the **project root** as their working directory; put your exported `helpers.py` there and `analysis.toml` inside `config/`. In Jupyter launched elsewhere, resolve the project path explicitly as the complete notebooks demonstrate.
+
+The browser has Python 3.12.7, NumPy 2.0.2, pandas 2.2.3, and Matplotlib 3.8.4. The downloaded project has its own tested dependency lock; record which environment produced a result. This lab supports ordinary Python cells and the bundled scientific packages. It does not implement Jupyter magics, widgets, interactive input, a terminal, arbitrary package installation, or access to your computer's files. A cell has a 15-second execution limit; Stop clears the worker if needed.
+
+Continue with [the notebook lesson](modules/02-notebooks.qmd), [the code explorer](modules/03-refactoring.qmd), or [your personal handoff plan](practice.qmd).

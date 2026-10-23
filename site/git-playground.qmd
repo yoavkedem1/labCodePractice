@@ -1,0 +1,118 @@
+---
+title: "Git practice room"
+subtitle: "See exactly what changes, and where."
+toc: false
+---
+
+```{=html}
+<div class="lab-intro"><span class="status-pill"><span class="status-dot"></span> Interactive simulation</span><span>5 missions · 25–40 minutes</span><span>No real files are changed</span></div>
+<div class="interactive-lab git-dojo" data-git-dojo>
+<section class="git-missionbar">
+<div class="mission-picker"><label for="git-mission">YOUR MISSION</label><select id="git-mission" data-git-mission></select></div>
+<div class="git-mission-summary"><p data-mission-goal></p><details><summary>Show hint</summary><p data-mission-hint></p></details></div>
+<div class="mission-actions"><button type="button" class="primary-action" data-git-action="check"><span data-icon="check"></span> Check mission</button><button type="button" class="text-action" data-git-action="reset">Reset repository</button></div>
+<p class="mission-feedback" role="status" aria-live="polite" data-mission-check></p>
+</section>
+<div class="git-layout">
+<section class="git-workspace" aria-label="Repository workspace">
+<div class="workspace-heading"><div><span class="workspace-icon" data-icon="git"></span><strong>motion-perception</strong></div><span class="head-label" data-dojo-head>HEAD → main</span></div>
+<div class="lab-tabs" role="tablist" aria-label="Repository views" data-git-tabs>
+<button type="button" id="tab-changes" role="tab" aria-selected="true" aria-controls="pane-changes" data-pane="changes"><span data-icon="code"></span> Changes</button>
+<button type="button" id="tab-history" role="tab" aria-selected="false" aria-controls="pane-history" data-pane="history" tabindex="-1"><span data-icon="git"></span> Branches &amp; history</button>
+<button type="button" id="tab-remote" role="tab" aria-selected="false" aria-controls="pane-remote" data-pane="remote" tabindex="-1"><span data-icon="cloud"></span> Remote &amp; review</button>
+</div>
+<section class="conflict-panel" data-dojo-conflict hidden><h2>The merge needs a decision</h2><pre data-conflict-markers></pre><p>Write the intended final contents, stage the resolution, then commit. In real code, remove the markers and run the analysis/tests too.</p>
+<div class="lab-columns"><div><label for="resolution-rule">Resolved minimum RT (seconds)</label><input id="resolution-rule" data-resolution-rule type="number" value="0.30" min="0.01" max="1.99" step="0.01"></div><div><label for="resolution-plot">Resolved plot color</label><select id="resolution-plot" data-resolution-plot><option>teal</option><option>purple</option><option>orange</option></select></div></div>
+<button type="button" data-git-action="resolve">Write resolved working file</button><button type="button" data-command="git merge --abort">Abort merge</button></section>
+<div id="pane-changes" class="workspace-pane" role="tabpanel" aria-labelledby="tab-changes" data-pane-content="changes">
+<div class="snapshot-grid" aria-label="Working files, index, and current commit">
+<div><h2><span>01</span> Working files</h2><p>What you have saved</p><pre data-working-snapshot></pre></div>
+<div><h2><span>02</span> Staged / index</h2><p>What the commit will record</p><pre data-index-snapshot></pre></div>
+<div><h2><span>03</span> HEAD commit</h2><p>The current branch tip</p><pre data-head-snapshot></pre></div>
+</div>
+<section class="git-edit-panel"><div class="panel-eyebrow">EDIT WORKING FILES</div><div class="lab-columns"><div><label for="rule-value">Minimum RT · seconds</label><div class="inline-controls"><input id="rule-value" data-rule-value type="number" min="0.01" max="1.99" step="0.01" value="0.50"><button type="button" data-git-action="rule">Edit rule</button></div></div><div><label for="plot-value">Plot color</label><div class="inline-controls"><select id="plot-value" data-plot-value><option>purple</option><option>teal</option><option>orange</option></select><button type="button" data-git-action="plot">Edit plot</button></div></div></div>
+<div class="stage-controls"><label for="stage-file">File to stage</label><select id="stage-file" data-stage-file><option value="config/analysis.toml">config/analysis.toml</option><option value="src/experiment/plotting.py">src/experiment/plotting.py</option><option value=".">Both files (.)</option></select><div class="lab-controls"><button type="button" data-git-action="stage">Stage selected file</button><button type="button" data-git-action="unstage">Unstage</button><button type="button" class="text-action" data-git-action="discard">Discard unstaged edit</button></div></div>
+<label for="commit-message">Commit message</label><div class="inline-controls"><input id="commit-message" data-commit-message value="Compare a stricter RT policy"><button type="button" class="primary-action" data-git-action="commit"><span data-icon="check"></span> Commit staged snapshot</button></div>
+</section>
+<div class="diff-grid"><section><h3><span class="diff-dot"></span> Unstaged changes <code>git diff</code></h3><pre data-unstaged-diff></pre></section><section><h3><span class="diff-dot staged"></span> Staged changes <code>git diff --staged</code></h3><pre data-staged-diff></pre></section></div>
+</div>
+<div id="pane-history" class="workspace-pane" role="tabpanel" aria-labelledby="tab-history" data-pane-content="history" hidden>
+<section class="branch-controls"><label for="branch-name">Create a branch at the current commit</label><div class="inline-controls"><input id="branch-name" data-branch-name value="criteria"><button type="button" data-git-action="branch">Create &amp; switch</button></div><div class="lab-columns"><div><label for="switch-target">Switch to branch</label><div class="inline-controls"><select id="switch-target" data-switch-target></select><button type="button" data-git-action="switch">Switch</button></div></div><div><label for="merge-target">Merge into current branch</label><div class="inline-controls"><select id="merge-target" data-merge-target></select><button type="button" data-git-action="merge">Merge</button></div></div></div></section>
+<div class="panel-section"><h2>Commit graph</h2><p class="small-note">Edges connect parents. Labels are branch pointers. Select a commit below to inspect its snapshot.</p><div class="git-history" data-dojo-graph></div><ol class="commit-list" data-commit-list aria-label="Local commit history; select a commit to inspect"></ol><pre class="commit-inspector" data-inspected-commit></pre></div>
+</div>
+<div id="pane-remote" class="workspace-pane" role="tabpanel" aria-labelledby="tab-remote" data-pane-content="remote" hidden>
+<details class="remote-panel" data-remote-panel open><summary>Simulated server · origin</summary><pre data-remote-refs></pre><div class="lab-controls"><button type="button" data-command="git push">Push current branch</button><button type="button" data-command="git fetch origin">Fetch origin</button><button type="button" data-command="git pull --ff-only">Pull --ff-only</button><button type="button" data-git-action="colleague">Labmate commits an orange plot on server main</button></div>
+<h3>Pull request</h3><pre data-pr-diff></pre><p class="small-note">Read the diff before review. New source or target commits require another review in this workflow. A server merge does not move local main.</p><div class="lab-controls"><button type="button" data-git-action="open-pr">Open PR from current pushed branch</button><button type="button" data-git-action="review-pr">Record review of these tips</button><button type="button" class="primary-action" data-git-action="merge-pr">Merge reviewed PR on server</button></div></details>
+</div>
+</section>
+<div role="complementary" class="git-console" aria-label="Git command console">
+<div class="console-heading"><span data-icon="terminal"></span><strong>Terminal</strong><span>SIMULATED</span></div>
+<div class="console-status"><span class="console-label">REPOSITORY STATUS</span><pre data-dojo-status></pre></div>
+<p role="status" aria-live="polite" class="console-feedback" data-git-feedback></p>
+<pre class="command-log" data-command-log aria-label="Command history"></pre>
+<form data-command-form><label for="git-command">Run a Git command</label><div class="command-entry"><span aria-hidden="true">$</span><input id="git-command" data-command-input spellcheck="false" autocomplete="off" placeholder="git status"><button type="submit" aria-label="Run command"><span data-icon="arrow"></span></button></div></form>
+<div class="command-shortcuts"><button type="button" data-command="git status">status</button><button type="button" data-command="git diff">diff</button><button type="button" data-command="git diff --staged">diff --staged</button></div>
+<p class="console-help">Buttons and commands use the same model. This terminal does not execute a shell.</p>
+</div>
+</div>
+<noscript>Enable JavaScript for the simulation, or follow the real Git lab in your terminal.</noscript>
+</div>
+```
+
+<details><summary>About this simulation</summary>
+
+The model has two teaching files, up to five local branches, and 50 commits. Switching branches requires a clean working tree here; real Git can carry non-conflicting edits. Diffs compare modeled settings, rather than whole files. `MM` indicates both staged and later unstaged changes; `UU` indicates an unresolved merge entry. Changing missions resets the simulated repository. Use [the real Git lab](git-lab.qmd) to practice in a terminal.
+
+</details>
+
+## Stuck? Read a worked route, then explain each move
+
+<details><summary>Mission 1 · one decision per commit</summary>
+
+Edit the rule to 0.50 and plot to purple. Run `git add config/analysis.toml`, compare `git diff --staged` with `git diff`, then `git commit -m "Compare a 0.50 s RT minimum"`. The commit contains the rule; purple remains only in working files. Try changing the rule after staging to see `MM`.
+
+</details>
+
+<details><summary>Mission 2 · shared base, independent changes</summary>
+
+Create criteria at baseline; edit rule to 0.30, stage, commit. Switch main; edit plot purple, stage, commit. Merge criteria into main. The graph now has a merge with two parents because both branches advanced from c0. Each branch changed a different modeled file.
+
+</details>
+
+<details><summary>Mission 3 · a resolution is a staged decision</summary>
+
+Create criteria; commit rule 0.30. Switch main; commit rule 0.25. Merge criteria. Inspect both versions and choose a final rule. Write the resolution, select and stage `config/analysis.toml`, then commit with a message such as "Resolve RT policy conflict after review". The model checks that resolution was staged even if you choose main's original value.
+
+</details>
+
+<details><summary>Mission 4 · local history and server history</summary>
+
+Create criteria; change, stage, commit the rule; push criteria. Open the remote panel, open a PR, read its diff, record review, and merge. Switch local main, inspect its older tip, then pull --ff-only. For an extra challenge, let the labmate commit after review. Inspect why the merge now refuses until the new tips are reviewed.
+
+</details>
+
+<details><summary>Mission 5 · undo different kinds of changes</summary>
+
+Edit and stage the rule; `git restore --staged config/analysis.toml` removes it from the index but preserves the working edit. Stage again and commit. `git revert HEAD` creates an inverse commit; the original remains in the graph. In this bounded model, revert supports only the latest single-parent commit.
+
+</details>
+
+## Command reference
+
+| Command | Question it answers or action it takes |
+| --- | --- |
+| `git status` | Which branch, staged files, and unstaged files? |
+| `git diff` / `git diff --staged` | Working versus index / index versus HEAD |
+| `git add PATH` / `git add .` | Copy selected current working versions into the index |
+| `git commit -m "Message"` | Record the index and move the current branch |
+| `git switch -c criteria` / `git switch main` | Create and switch / switch an existing branch |
+| `git merge criteria` / `git merge --abort` | Integrate into current branch / abandon unresolved merge |
+| `git log --oneline --graph --all` | Inspect locally known history (console uses parent lists) |
+| `git push -u origin criteria` | Share commits and update the server branch |
+| `git fetch origin` | Update local knowledge of server pointers |
+| `git pull --ff-only` | Fetch, then advance current branch if history permits |
+| `git restore --staged PATH` | Unstage without discarding working edits |
+| `git restore PATH` | Discard unstaged changes by restoring from the index |
+| `git revert HEAD` | Add an inverse commit; preserve history |
+
+Now complete [the real Git lab](git-lab.qmd). Close the command reference and explain, from memory, why committing, pushing, and opening a PR are three separate actions. Return in two days using [the practice plan](practice.qmd).

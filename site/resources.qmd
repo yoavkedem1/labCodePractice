@@ -1,0 +1,65 @@
+---
+title: "Take the experiment with you"
+subtitle: "Working code, runnable notebooks, and references worth keeping nearby."
+---
+
+## Browser practice
+
+Use the [live Python notebook lab](notebook-lab.qmd), [Git practice room](git-playground.qmd), and [personal handoff plan](practice.qmd). Download cell code as a real `.ipynb` and export your helper/config from the live lab. For full Jupyter, use the complete project below.
+
+## Download the materials
+
+```{=html}
+<div class="download-grid">
+<a href="downloads/motion-perception.zip" download>Complete research project ↓<small>All three stages, reviewed TOML configs, synthetic CSV, reusable Python, tests, and run records.</small></a>
+<a href="downloads/workshop-source.zip" download>Website & facilitator source ↓<small>Quarto lessons, interactive components, validation tools, and GitHub Pages workflow.</small></a>
+</div>
+```
+
+Extract the complete project and follow its README or [setup](setup.qmd). Archives are generated from source during the website build and exclude environments, caches, Git metadata, and generated analysis outputs. The notebooks contain small executed synthetic outputs for inspection. The website source archive includes the complete example project too.
+
+## Compare the three stages
+
+| Stage | Open in Jupyter | Purpose |
+| --- | --- | --- |
+| A · exploration | `notebooks/01_exploration.ipynb` | A working but repetitive analysis with embedded paths and repeated rules |
+| B · extracted functions | `notebooks/02_refactored.ipynb` + `helpers.py` | Same results, one reusable filtering and summary module |
+| C · complete project | `notebooks/03_project.ipynb` + `src/experiment/` | Shared configuration, validated inputs, installed package, scripts, run records, and tests |
+
+All use the same seeded CSV and inclusive RT bounds. The tests execute each notebook from a fresh kernel and compare the condition tables with numerical tolerances. See [the refactoring lesson](modules/03-refactoring.qmd) for the guided comparison.
+
+## The experiment in one paragraph
+
+Twenty-four fictitious participants each complete 80 trials in each of two conditions. Each trial has a signed motion direction and unsigned stimulus strength. A logistic choice rule produces right/left responses, with reduced sensitivity in the noisy condition. A local seeded generator also produces RTs and sparse simulated timing artifacts. The data dictionary in `data/README.md` defines every column. The analysis is descriptive and uses no real participant data.
+
+## Small command reference
+
+| Task | Command | Run from |
+| --- | --- | --- |
+| Install the teaching project | `python -m pip install -e ".[dev]"` | Extracted project root, activated environment |
+| Regenerate synthetic trials | `python scripts/generate_data.py` | Project root |
+| Reproduce the baseline | `python scripts/run_analysis.py --config config/analysis.toml` | Project root |
+| Compare a stricter RT rule | `python scripts/run_analysis.py --config config/sensitivity.toml` | Project root |
+| Run project checks | `python -m pytest` | Project root |
+| Launch notebooks | `python -m jupyterlab` | Project root |
+| Inspect changes | `git status` and `git diff` | Git working tree |
+| Inspect the proposed commit | `git diff --staged` | Git working tree |
+| Create a branch | `git switch -c descriptive-name` | Git working tree |
+| Upload a branch | `git push -u origin descriptive-name` | A repository with your remote configured |
+
+## Authoritative references
+
+- [PEP 8: naming conventions](https://peps.python.org/pep-0008/#naming-conventions) provides language conventions; the lessons add scientific units, state, and aggregation meaning.
+- [Python: TOML configuration](https://docs.python.org/3.11/library/tomllib.html) documents the standard-library parser used here.
+- [Python: modules and packages](https://docs.python.org/3/tutorial/modules.html) explains imports and package namespaces.
+- [Python: virtual environments](https://docs.python.org/3/tutorial/venv.html) explains isolated installations.
+- [pandas: groupby](https://pandas.pydata.org/docs/user_guide/groupby.html) documents split-apply-combine operations.
+- [JupyterLab: notebooks](https://jupyterlab.readthedocs.io/en/stable/user/notebook.html) explains kernels and notebook use.
+- [Pro Git](https://git-scm.com/book/en/v2) provides a free, detailed Git reference.
+- [GitHub: pull requests](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests) explains hosted review.
+- [Quarto: websites](https://quarto.org/docs/websites/) documents this site's static architecture.
+- [GitHub Pages: custom workflows](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages) explains deployment permissions and artifacts.
+
+## Use and adaptation
+
+The workshop source is supplied under the MIT license. Synthetic data are released under CC0 as stated in `DATA-LICENSE.md`. Adjust examples to your lab's methods and data policies. No upload, repository creation on GitHub, or publishing is required to use the local materials. The root README explains how to build and deploy the website when its owner chooses to do so.

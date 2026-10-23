@@ -1,0 +1,115 @@
+---
+title: "01 · Write code your labmate can review"
+subtitle: "Meaningful names, explicit assumptions, and functions with clear responsibilities."
+---
+
+::: {.lesson-meta}
+20 minutes · Assumes introductory Python and experience writing analysis code
+:::
+
+## What you will learn
+
+- Name variables so the reader can identify the data, units, and level of aggregation.
+- Separate scientific choices from implementation details and observed data.
+- Design functions with explicit inputs, predictable outputs, and limited side effects.
+- Review code for scientific meaning before polishing formatting.
+
+You can already write code that produces a figure. The next problem is understanding which decisions produced it, changing one decision safely, and handing the analysis to someone else. We start with a code review, not a syntax recap.
+
+## Review this analysis
+
+```python
+import pandas as pd
+
+d = pd.read_csv("data/raw/trials.csv")
+d = d[d["reaction_time"].between(0.2, 2.0)]
+r = d.groupby(["participant_id", "condition"])["correct"].mean()
+print(r.groupby("condition").mean())
+```
+
+The calculation is legitimate for this synthetic dataset. But the names conceal the table's state, the numbers conceal units and policy, and the reused `d` erases the distinction between input and retained trials. A reader must reconstruct the procedure before reviewing its scientific meaning.
+
+Start by asking: **what does each object represent, what assumptions does it carry, and what can change?** A formatter cannot answer those questions for you.
+
+## Names are part of the scientific explanation
+
+| Weak or ambiguous name | More useful here | Information the reader gains |
+| --- | --- | --- |
+| `d`, `df2` | `raw_trials`, `filtered_trials` | Meaning and preprocessing state |
+| `t`, `threshold` | `min_rt_s` | Which threshold, and its unit |
+| `results` | `participant_metrics` | One row per participant and condition |
+| `avg` | `mean_participant_accuracy` | Quantity and aggregation level |
+| `accuracy_percent` holding 0.81 | `accuracy` or `accuracy_fraction` | Representation agrees with the value |
+| `flag` | `has_missing_trials` | A boolean reads as a statement |
+
+Use `snake_case` consistently. Prefer vocabulary shared with your lab's methods. Avoid abbreviations that require remembering the current cell; standard local names such as `ax` for one plotting axis can still be clear. Longer is not automatically better: `participant_metrics` is useful, while `processed_pandas_dataframe_of_participant_metrics` adds little.
+
+The CSV's existing `reaction_time` column is documented in seconds. We keep that schema stable and use unit-explicit parameter names at the API boundary. Renaming variables does not require silently changing a shared data format.
+
+```python
+# After installing the example package; run from the project root.
+from pathlib import Path
+from experiment.preprocessing import load_trials, filter_trials
+from experiment.analysis import participant_summary, condition_summary
+
+raw_trials = load_trials(Path("data/raw/trials.csv"))
+filtered_trials = filter_trials(raw_trials, min_rt_s=0.2, max_rt_s=2.0)
+participant_metrics = participant_summary(filtered_trials)
+condition_metrics = condition_summary(participant_metrics)
+```
+
+The sequence now communicates a pipeline. `participant_metrics` and `condition_metrics` are both DataFrames, but their names expose different units of analysis. That distinction can prevent accidentally substituting pooled-trial accuracy for mean participant accuracy.
+
+## Give a function a contract
+
+For `filter_trials`, the contract is: accept a valid trial table and inclusive RT bounds in seconds; return a new retained-trial table; include incorrect trials; reject invalid bounds or an empty result. It does not read a configuration file, overwrite the input, draw a plot, or save a CSV.
+
+A practical review checks:
+
+- **Inputs:** are all scientific dependencies visible at the call site?
+- **Output:** what type, columns, units, and row level does the caller receive?
+- **Side effects:** does the function mutate a table, write a file, or change global state?
+- **Failure:** does missing or invalid data stop with useful context, or quietly become a misleading result?
+
+Prefer keyword arguments when adjacent numbers have different meanings. `filter_trials(raw_trials, min_rt_s=0.2, max_rt_s=2.0)` is easier to review than `filter_trials(raw_trials, 0.2, 2.0)`. Return intermediate results so tests and notebooks can inspect them. A function may reasonably have side effects—`save_results` should—but its name and documentation should make them expected.
+
+## Put decisions in the right place
+
+| Value | Where it belongs | Why |
+| --- | --- | --- |
+| Inclusive RT limits | Reviewed analysis configuration | A scientific choice may vary between runs |
+| Individual trial RT | Input data | An observation, not a setting |
+| Seconds-to-milliseconds conversion | Named constant or explicit conversion | A unit relationship, not a tunable exclusion rule |
+| Plot colors | Near plotting code, or a shared style if needed | A presentation choice |
+| Input/output locations | Configuration resolved at the entry point | Machine-independent reuse |
+
+Moving every literal to a global constant does not create a reproducible analysis. The caller must still know which choices were used. [Module 4](04-projects.qmd#configuration) puts the RT policy and paths in a version-controlled TOML file; the run records its effective values.
+
+## Explain the assumption, not the syntax
+
+A comment such as `# calculate mean` adds little to `.mean()`. A comment explaining **why participant means are averaged before comparing conditions** preserves a scientific decision. A docstring should describe the expected table, units, result, and important edge cases. Type hints can help readers and tools; they do not validate a CSV or enforce units at runtime.
+
+Use blank lines and a formatter to expose the structure. Keep imports explicit, avoid `from module import *`, and handle errors where you have enough context to explain them. A broad `except Exception: return 0` can turn an analysis failure into a false observation.
+
+::: {.exercise}
+<span class="exercise-label">EXERCISE 01 · REVIEW FOR MEANING</span>
+
+### Refactor the explanation without changing the answer
+
+Rewrite the opening snippet with meaningful table names and named RT bounds. State the table's row level before and after grouping. Identify one scientific choice, one side effect, and one assumption that deserves a check. Compare your result with the original condition means before proceeding.
+
+<details><summary>Hint</summary>Names should expose raw versus filtered trials and participant versus condition summaries. Do not remove incorrect trials or change weighting while renaming.</details>
+<details><summary>Reveal solution and review rationale</summary>
+
+The `raw_trials → filtered_trials → participant_metrics → condition_metrics` sequence above is one solution. Trial rows become participant-condition rows, then condition rows. RT bounds are scientific choices; loading and printing are side effects; finite positive RTs and consistent correctness coding require validation. Keep all errors when computing accuracy. A successful cleanup preserves both condition values, not just the overall mean.
+
+</details>
+:::
+
+```{=html}
+<form class="quiz exercise" data-answer="1" data-explanation="A useful name communicates scientific meaning and aggregation level. Units and representation must also agree with the actual values."><div class="exercise-label">CODE REVIEW · MAKE A DECISION</div><fieldset><legend>A table has one row per participant and condition. Which name communicates its role?</legend><label><input type="radio" name="naming" value="0" required> results_final, because it is used near the end</label><label><input type="radio" name="naming" value="1" required> participant_metrics, with accuracy documented as a fraction</label><label><input type="radio" name="naming" value="2" required> accuracy_percent, even though it also contains RTs and the values are 0–1</label></fieldset><button type="submit">Check answer</button><p class="quiz-feedback" role="status" aria-live="polite"></p></form>
+```
+
+## Take it with you
+
+Clean code makes scientific intent and dependencies visible. Names, contracts, and small reviewable steps matter more than the number of files. Continue to [notebooks as analysis interfaces](02-notebooks.qmd), then [extracting stable logic](03-refactoring.qmd). Reference: [PEP 8 naming conventions](https://peps.python.org/pep-0008/#naming-conventions).

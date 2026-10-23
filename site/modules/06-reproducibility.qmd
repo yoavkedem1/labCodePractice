@@ -1,0 +1,115 @@
+---
+title: "06 · Ready for another researcher"
+subtitle: "The real test is a fresh checkout and a clear set of instructions."
+---
+
+::: {.lesson-meta}
+25 minutes · Prerequisite: project structure & Git · Project stage C
+:::
+
+## What you will learn
+
+- Recreate a documented environment and rerun the analysis.
+- Decide which code, data, and notebook outputs to share.
+- Use review, provenance, and a practical handoff checklist.
+
+A project that works only in the author's current kernel is difficult to evaluate. Reproducibility means someone can identify the inputs and procedure and recreate the intended outputs within a stated tolerance. It depends on scientific choices and data access as well as code organization.
+
+## Start from a clean copy
+
+Use a fresh extracted archive or clone your practice repository into a different directory. Do not copy the old `.venv`. Follow the README from the beginning using Python 3.11:
+
+```sh
+python -m venv .venv
+# Activate using the platform-specific setup instructions.
+python -m pip install -r requirements-lock.txt
+python -m pip install --no-deps -e .
+python scripts/generate_data.py
+python scripts/run_analysis.py --config config/analysis.toml
+python -m pytest
+```
+
+The generator uses seed **202611**, a local random-number generator, and fixed dependency versions in the tested environment. The analysis prints retained trial counts, writes the participant and condition tables, and saves `results/baseline/behavior.svg`. The run also saves effective settings, an input hash, counts, and software versions to `results/baseline/run.json`. All three notebooks compute the same baseline summary; the tests compare them numerically rather than comparing image pixels.
+
+Compare tables with a documented numerical tolerance. A visually identical figure can hide a changed sample, while a different SVG identifier need not imply a different scientific result. The simulation's model is educational and does not provide evidence about real participants.
+
+## Audit the run specification
+
+A reproducible figure needs the exact input, procedure, code revision, software environment, and scientific settings. A successful command or an unchanged screenshot is weak evidence on its own. Compare `run.json` with the config: CLI overrides can intentionally make effective values differ from the file. Check the data hash and retained trial counts before interpreting numerical differences.
+
+Run `config/sensitivity.toml` into its own output directory, and verify the baseline is intact. Explain any shift in the clear/noisy comparison in terms of the changed selection policy. Faster trial exclusion can affect conditions differently; a neatly organized project does not remove that scientific concern.
+
+The JSON records versions but does not lock them, and the input hash does not preserve the input. Keep the tested dependency file, approved data access/provenance, synthetic generator seed, and code revision as part of the handoff. Generated run records should accompany archived results when your lab's workflow requires them; this teaching project keeps local results out of Git.
+
+## Write the README you needed yesterday
+
+A useful README answers: what question does this project address? Where did the data come from? What do the columns mean? Which Python version and installation commands are supported? What command reproduces the figure? Where are outputs written? What exclusions, units, and limitations apply?
+
+For this project, state that RTs outside inclusive 0.2–2.0 seconds are excluded, accuracy includes errors, and participant scores are averaged with equal participant weight. The clear/noisy comparison is descriptive; do not interpret approximate error bars as a paired statistical test. Link to the data dictionary and include the seed and code revision in a real analysis record.
+
+## Commit deliberately
+
+| Material | Default in this workshop | Reason |
+| --- | --- | --- |
+| Python source, notebooks, tests, README | Commit | Explain and reproduce the analysis |
+| Small synthetic raw CSV | Commit | Safe, useful teaching input |
+| Generation script and seed | Commit | Recreate the synthetic input |
+| Dependency declarations and tested lock | Commit | Recreate software requirements |
+| Named baseline and sensitivity configs | Commit | Review scientific choices and output destinations |
+| `.venv`, caches, temporary files | Ignore | Recreated and machine-specific |
+| Generated figures and tables | Ignore here | Regenerate from documented inputs |
+| Real identifiable or restricted data | Keep in approved storage | Access and consent constraints remain relevant |
+
+Some projects archive release figures or derived data for provenance. Decide deliberately and document the policy; ignoring all outputs is not a universal scientific rule. A `.gitignore` is a convenience, not an access-control boundary. It cannot remove content from old commits.
+
+## Notebook diffs need attention
+
+A notebook is a JSON document containing cells, outputs, execution counts, and metadata. Git can version it, but a changed plot or kernel metadata can create a large diff. Before committing, inspect the difference and ensure outputs do not contain private paths or data. Either retain selected safe outputs for communication or clear them consistently; document the choice.
+
+This workshop keeps executed notebooks with small synthetic summaries and figures so you can inspect the result before running. Every notebook is also tested in a fresh kernel. If conflicts occur, agree which notebook edits to keep and rerun the result; do not blindly merge JSON fragments.
+
+<details><summary>Optional tools when the project grows</summary>
+
+[Jupytext](https://jupytext.readthedocs.io/) can pair a notebook with a text representation for clearer code review. It adds a synchronization convention that the team must understand. Specialized data-versioning or archival tools can help with large inputs and provenance; they do not replace consent, access controls, or a data dictionary. Neither is required for this workshop.
+
+</details>
+
+## Review the scientific change
+
+A useful pull request says what changed, why, how it affects exclusions or results, and which checks passed. Ask a colleague to inspect the rule, units, tests, and changed summary. Passing tests do not establish that a new exclusion rule is scientifically justified. Separate a mechanical refactor from a change in scientific method so each can be evaluated clearly.
+
+::: {.exercise}
+<span class="exercise-label">EXERCISE 06 · THE HANDOFF</span>
+
+### Swap machines—or swap roles
+
+Give a partner a fresh copy and only the README. Ask them to reproduce the figure without verbal instructions. Record every missing instruction. If working alone, use a clean directory and environment and follow the README literally. Compare the condition summary and run all notebooks. Ask the recipient to locate the effective RT bounds in `run.json`, run the alternative config without editing Python, and show that baseline outputs were preserved.
+
+<details><summary>Hint</summary>Do not borrow an environment or a generated output from the original checkout. Note which command is run from which folder.</details>
+<details><summary>Reveal solution and explanation</summary>
+
+The example README includes environment creation, installation, regeneration, analysis, tests, and notebook launch. A successful handoff produces the same retained counts and numerically equivalent accuracy and RT summaries. If an unmentioned step was needed, add it to the README and test again. The recipient should also be able to identify the input hash and effective policy, distinguish baseline from sensitivity output, and explain the code revision being run. The handoff is evidence about instructions as well as the code.
+
+</details>
+:::
+
+## Your reproducibility checklist
+
+These checkboxes are a local session aid. They reset on page reload and do not certify completion.
+
+```{=html}
+<div class="checklist exercise" data-checklist>
+<label><input type="checkbox"> A fresh kernel runs every notebook from top to bottom.</label>
+<label><input type="checkbox"> Raw inputs, synthetic provenance, units, and reviewed configuration are documented.</label>
+<label><input type="checkbox"> Python, dependencies, seed, and code revision are recorded.</label>
+<label><input type="checkbox"> A documented command and named config regenerate outputs with a run record.</label>
+<label><input type="checkbox"> Tests check scientific boundaries, configuration behavior, and stage equivalence.</label>
+<label><input type="checkbox"> No credentials or restricted participant data enter the repository.</label>
+<label><input type="checkbox"> A colleague can recreate the environment and inspect the result.</label>
+<p class="checklist-output" role="status">0 of 7 checked</p>
+</div>
+```
+
+## Take it with you
+
+A readable project becomes a reproducible one when another person can recreate its inputs, environment, and procedure. Keep exploration in notebooks, shared logic in modules, choices in reviewable code, and history in Git. Return to the [workshop recap](../workshop.qmd#recap) or keep the [reference and downloads](../resources.qmd) nearby.

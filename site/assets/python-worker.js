@@ -1,9 +1,11 @@
 import {loadPyodide} from './python-runtime/pyodide.mjs';
 let python;
 async function initialize(files) {
-  self.postMessage({type:'status',text:'Loading the local Python runtime and scientific packages…'});
+  self.postMessage({type:'status',text:'Downloading Python. The first run can take a few minutes.'});
   python = await loadPyodide({indexURL:new URL('./python-runtime/',import.meta.url).href});
+  self.postMessage({type:'status',text:'Loading pandas, NumPy, and Matplotlib…'});
   await python.loadPackage(['numpy','pandas','matplotlib']);
+  self.postMessage({type:'status',text:'Preparing the workshop data…'});
   const project = await fetch(new URL('./browser-project.json',import.meta.url));
   if(!project.ok) throw new Error('Browser project files are missing. Rebuild the site.');
   const bundled = (await project.json()).files;

@@ -17,9 +17,33 @@ test('branch creation moves HEAD without making a commit', () => {
   assert.equal(m.current,'criteria'); assert.equal(m.commits.length,1);
   assert.equal(m.branches.criteria,m.branches.main);
 });
-test('branch and switch require clean work in this bounded model', () => {
-  const m = new GitModel(); m.edit('rule'); assert.throws(() => m.branch(), /Commit/);
-  m.stage(); m.commit(); m.branch(); m.edit('plot'); assert.throws(() => m.switchBranch(), /Commit/);
+test('branch creation and switching preserve staged and later unstaged edits', () => {
+  const m = new GitModel();
+  m.branch('plot-theme');
+  save(m, 'plot');
+  m.switchBranch('main');
+  m.setFile('rule', '0.30');
+  m.stage(['rule']);
+  m.setFile('rule', '0.50');
+  m.branch();
+  assert.equal(m.current, 'criteria');
+  assert.deepEqual([m.index.rule, m.working.rule], ['0.30', '0.50']);
+  m.switchBranch('plot-theme');
+  assert.deepEqual([m.index.rule, m.working.rule, m.working.plot], ['0.30', '0.50', 'purple']);
+});
+
+test('switch identifies overlapping paths and leaves all snapshots intact', () => {
+  const m = new GitModel();
+  m.branch();
+  save(m, 'rule');
+  m.switchBranch('main');
+  m.setFile('rule', '0.50');
+  m.stage(['rule']);
+  m.setFile('plot', 'purple');
+  assert.throws(() => m.switchBranch('criteria'), /config\/analysis\.toml/);
+  assert.equal(m.current, 'main');
+  assert.deepEqual(m.staged, ['rule']);
+  assert.deepEqual(m.unstaged, ['plot']);
 });
 test('fast-forward advances main without inventing a merge commit', () => {
   const m = new GitModel(); m.branch(); save(m,'rule'); m.switchBranch();
@@ -37,7 +61,7 @@ test('conflicting edits stop branch advancement until resolved', () => {
   const m = new GitModel(); m.branch(); save(m,'rule'); m.switchBranch(); save(m,'rule');
   const oldHead=m.head.id; assert.match(m.merge(), /Merge stopped/);
   assert.equal(m.head.id,oldHead); assert.equal(m.commits.length,3);
-  assert.throws(() => m.commit(), /Resolve or abort/);
+  assert.throws(() => m.commit(), /Resolve.*stage/);
   m.resolve('0.25'); assert.equal(m.head.snapshot.rule,'0.25');
   assert.equal(m.head.parents.length,2); assert.equal(m.conflict,null);
 });

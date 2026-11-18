@@ -42,12 +42,12 @@ git log --oneline --graph --all
 
 ## Practice with five connected missions
 
-[Open the Git practice room](../git-playground.qmd) to inspect working files, the index, HEAD, commit parents, local branches, server branches, and remote-tracking pointers. Use buttons or a bounded command console. Each mission checks the repository state you produced and includes a hint, worked route, and explanation.
+[Open the Git practice room](../git-playground.qmd) for a goal and a checklist that updates as you work. Use the controls next to each file or open the Terminal to type Git commands. Each mission includes command hints and a worked route.
 
 1. **Stage selectively:** commit a 0.50 s rule while leaving a purple plot unstaged. Change a staged file again and explain `MM`.
 2. **Merge independent work:** develop a rule on criteria and a plot on main. Identify the common ancestor before merging.
-3. **Resolve deliberately:** make conflicting rules, write a resolution, stage the file, and commit. Choosing main's value still requires staging the resolution.
-4. **Review and synchronize:** push a feature, review and merge a simulated PR, then fetch/pull locally. Observe how a new server commit invalidates review.
+3. **Resolve deliberately:** merge two prepared branches with conflicting rules. Save a resolution, stage the file, and commit. Choosing main's value still requires staging the resolution.
+4. **Review and synchronize:** push the prepared feature commit, review and merge a simulated PR, then update local main. Observe how a new server commit invalidates review.
 5. **Recover:** unstage without losing edits, then undo a committed change with a new inverse commit.
 
 This simulation executes no real Git commands. Its teaching IDs such as `c0` are not hashes. It models two files, five local branches, and 50 commits; some operations are deliberately narrower than Git. Practice the same decisions in [the real Git lab](../git-lab.qmd).
@@ -131,7 +131,7 @@ Use mission 3 in the [practice room](../git-playground.html?mission=conflict). B
 <details><summary>Hint</summary>Creating a branch does not create a commit. Look for the last node both branch histories can reach.</details>
 <details><summary>Reveal solution and explanation</summary>
 
-With a fresh sandbox, both branches start at `c0`. Criteria's first commit is `c1`; main's is `c2`. They share `c0`. Both changed the rule from 0.20 to different values, so the merge needs a decision. Resolving creates `c3` with parents `c2` and `c1`. Changing the plot only on main and the rule only on criteria allows a clean three-way merge in this model.
+The sandbox starts with `criteria` at `c1` and `main` at `c2`. They share `c0`. Both changed the rule from 0.20 to different values, so the merge needs a decision. Resolving creates `c3` with parents `c2` and `c1`. Changing the plot only on main and the rule only on criteria allows a clean three-way merge in this model.
 
 </details>
 :::

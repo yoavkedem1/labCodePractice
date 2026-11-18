@@ -21,12 +21,13 @@ function icons(scope=document){
  }
 }
 icons();
-function tabs(root,selector){
+export function tabs(root,selector,onSelect){
  const list=root.querySelector(selector);if(!list)return ()=>{};
  const buttons=[...list.querySelectorAll('[data-pane]')];
  const select=name=>{
   for(const button of buttons){const selected=button.dataset.pane===name;button.setAttribute('aria-selected',String(selected));button.tabIndex=selected?0:-1;}
   for(const pane of root.querySelectorAll('[data-pane-content]'))pane.hidden=pane.dataset.paneContent!==name;
+  onSelect?.(name);
  };
  list.addEventListener('click',e=>{const b=e.target.closest('[data-pane]');if(b)select(b.dataset.pane);});
  list.addEventListener('keydown',e=>{
@@ -65,9 +66,4 @@ if(notebook){
   if(b.matches('[data-solution]'))queueMicrotask(syncGutters);
  },{capture:true});
  decorate();
-}
-const git=document.querySelector('[data-git-dojo]');
-if(git){
- const select=tabs(git,'[data-git-tabs]');
- git.addEventListener('workshop:git-mission',e=>select(e.detail.id==='remote'?'remote':e.detail.id==='branches'||e.detail.id==='conflict'?'history':'changes'));
 }

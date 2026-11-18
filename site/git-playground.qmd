@@ -1,10 +1,14 @@
 ---
-title: "Git practice room"
+title: "Git practice"
 toc: false
+sidebar: false
+page-navigation: false
+page-layout: full
 ---
 
 ```{=html}
 <div class="interactive-lab git-dojo" data-git-dojo>
+<p class="practice-page-intro">Practice making and sharing a change in a simulated repository. Start by choosing which edits belong in one commit.</p>
 <noscript><p>Enable JavaScript for the practice room or open <a href="git-lab.html">the local Git lab</a>.</p></noscript>
 <div class="git-layout">
 <section class="git-guide" aria-label="Mission">

@@ -40,11 +40,6 @@ export function tabs(root,selector,onSelect){
 }
 const notebook=document.querySelector('[data-notebook-lab]');
 if(notebook){
- const select=tabs(notebook,'[data-workspace-tabs]');
- const feedback=notebook.querySelector('[data-mission-result]'),summary=notebook.querySelector('[data-check-summary]');
- new MutationObserver(()=>{const state=feedback.dataset.state;summary.hidden=!state;summary.dataset.state=state||'';summary.textContent=state==='passed'?'Passed · view feedback':'Check failed · view feedback';}).observe(feedback,{childList:true});
- const instructions=notebook.querySelector('[data-mission-instructions]');
- if(instructions)instructions.open=matchMedia('(min-width:1200px)').matches;
  const decorate=()=>{
   for(const editor of notebook.querySelectorAll('.code-editor:not([data-lines-ready])')){
    editor.dataset.linesReady='';
@@ -57,13 +52,6 @@ if(notebook){
  };
  const syncGutters=()=>{for(const editor of notebook.querySelectorAll('.code-editor')){const gutter=editor.closest('.editor-frame')?.querySelector('.line-gutter');if(gutter)gutter.textContent=Array.from({length:editor.value.split('\n').length},(_,i)=>i+1).join('\n');}};
  new MutationObserver(()=>{decorate();icons(notebook);}).observe(notebook.querySelector('[data-cells]'),{childList:true});
- notebook.addEventListener('workshop:lesson',e=>{
-  decorate();syncGutters();select(e.detail.id==='refactor'?'helper':e.detail.id==='config'?'config':'notebook');
- });
- notebook.addEventListener('click',e=>{
-  const b=e.target.closest('button');if(!b)return;
-  if(b.matches('[data-run-cell],[data-run-all],[data-check-mission]'))select('notebook');
-  if(b.matches('[data-solution]'))queueMicrotask(syncGutters);
- },{capture:true});
+ notebook.addEventListener('workshop:lesson',()=>{decorate();syncGutters();});
  decorate();
 }

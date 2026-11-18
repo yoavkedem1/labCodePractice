@@ -46,4 +46,4 @@ Each extension should leave the original result intact unless the method is inte
 
 **Names that communicate the science. Functions with explicit contracts. Notebooks that call reusable modules. Configuration that records the choices. Git that makes changes reviewable.**
 
-Choose one existing notebook, one ambiguous name, one repeated calculation, and one hardcoded scientific parameter to improve this week. Start small, compare the answer, and ask someone else to rerun it. Continue with [the self-paced modules](index.qmd) and [downloads and reference](resources.qmd).
+Choose one existing notebook, one ambiguous name, one repeated calculation, and one hardcoded scientific parameter to improve this week. Start small, compare the answer, and ask someone else to rerun it. Continue with [the self-paced lessons and downloads](resources.qmd).

@@ -1,11 +1,19 @@
 ---
-title: "Take the experiment with you"
-subtitle: "Working code, runnable notebooks, and references worth keeping nearby."
+title: "Lessons & materials"
 ---
 
-## Browser practice
+## Lessons
 
-Use the [live Python notebook lab](notebook-lab.qmd), [Git practice room](git-playground.qmd), and [personal handoff plan](practice.qmd). Download cell code as a real `.ipynb` and export your helper/config from the live lab. For full Jupyter, use the complete project below.
+1. [Clean code & meaningful names](modules/01-foundations.qmd)
+2. [How notebooks run](modules/02-notebooks.qmd)
+3. [From cells to functions](modules/03-refactoring.qmd)
+4. [Project structure & configuration](modules/04-projects.qmd)
+5. [Git & GitHub](modules/05-git.qmd)
+6. [Reproduce an analysis together](modules/06-reproducibility.qmd)
+
+## Workshop materials
+
+Follow the [facilitator schedule](workshop.qmd), try the [Git lab on your computer](git-lab.qmd), or use the [personal handoff plan](practice.qmd) with a labmate. To run the downloaded notebooks in Jupyter, follow the [local setup instructions](setup.qmd).
 
 ## Download the materials
 

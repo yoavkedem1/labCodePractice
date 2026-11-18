@@ -36,7 +36,7 @@ if __name__ == '__main__':
         if not license_path.exists():
             with urlopen(url, timeout=30) as response:
                 license_path.write_bytes(response.read())
-    fetch('pyodide-lock.json')
+    lock_asset = fetch('pyodide-lock.json')
     lock = json.loads((DEST/'pyodide-lock.json').read_text())
     assert lock['info']['version'] == VERSION
     packages = set()
@@ -52,5 +52,12 @@ if __name__ == '__main__':
     files += [(lock['packages'][name]['file_name'], lock['packages'][name]['sha256']) for name in sorted(packages)]
     with ThreadPoolExecutor(max_workers=6) as pool:
         manifest = list(pool.map(lambda entry: fetch(*entry), files))
+    manifest.insert(0, lock_asset)
     (DEST/'runtime-manifest.json').write_text(json.dumps({'version': VERSION, 'source': BASE, 'files': manifest}, indent=2)+'\n')
+    digest = sha256(json.dumps(manifest, sort_keys=True).encode()).hexdigest()
+    cache_key = json.dumps(f'{VERSION}-{digest}')
+    cache_files = json.dumps([asset['file'] for asset in manifest])
+    (DEST/'cache-config.js').write_text(
+        f'export const runtimeKey = {cache_key};\nexport const runtimeFiles = {cache_files};\n'
+    )
     print(f'Browser Python {VERSION}: {len(files)} files, {sum(f["bytes"] for f in manifest)/1e6:.1f} MB; wheel checksums verified.')

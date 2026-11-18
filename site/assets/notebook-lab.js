@@ -8,6 +8,7 @@ const filePaths = {helper: 'helpers.py', config: 'config/analysis.toml'};
 const baseConfig = '[paths]\ndata = "../data/raw/trials.csv"\noutput = "../results/baseline"\n\n[preprocessing]\nmin_rt_s = 0.2\nmax_rt_s = 2.0\n';
 const baseHelper = 'def clean_trials(trials, min_rt_s=0.2, max_rt_s=2.0):\n    return trials.loc[trials.reaction_time.between(min_rt_s, max_rt_s)].copy()\n';
 const storageKey = 'research-code-notebook-v1';
+const pythonLoadTimeout = 300000;
 const guide = q('[data-guide-action]');
 const feedback = q('[data-guide-feedback]');
 const stepPanel = q('#current-step');
@@ -97,7 +98,7 @@ function request(action, values = {}, timeout = 15000) {
   const id = ++sequence;
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => {
-      terminate(action === 'init' ? 'Python took too long to load.' : 'Python stopped because the action timed out.');
+      terminate(action === 'init' ? 'Python did not finish downloading. Check your connection or run the downloaded project in Jupyter.' : 'Python stopped because the action timed out.');
     }, timeout);
     pending.set(id, {resolve, reject, timer});
     worker.postMessage({id, action, ...values});
@@ -125,9 +126,9 @@ async function start() {
     if (worker === activeWorker) terminate('Python could not load. Reload the page if retrying does not help.');
   };
   controls();
-  message('Loading Python and scientific packages…');
+  message('Starting Python…');
   const projectFiles = Object.fromEntries(Object.entries(filePaths).map(([file, path]) => [path, files[file]]));
-  await request('init', {files: projectFiles}, 120000);
+  await request('init', {files: projectFiles}, pythonLoadTimeout);
   ready = true;
 }
 

@@ -18,5 +18,5 @@ prepare_browser.py regenerates that virtual filesystem at build time.
 
 The worker runs Python on the learner's device. Source edits are stored in
 localStorage when available; variables and virtual filesystem state last only
-until restart. The controller reapplies the editors on a fresh kernel.
+until restart. A fresh Python session uses the saved project files and the current notebook cells.
 No analytics, accounts, or backend execution are used.

@@ -1,5 +1,5 @@
 import './ui.js';
-if(document.querySelector('[data-notebook-lab]')) import('./notebook-lab.js');
+if(document.querySelector('[data-notebook-lab]')) import('./notebook-lab.js?v=runtime-cache');
 if(document.querySelector('[data-git-dojo]')) import('./git-playground.js');
 if(document.querySelector('[data-practice-plan]')) import('./practice.js');
 

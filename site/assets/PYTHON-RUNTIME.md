@@ -4,7 +4,7 @@ The workshop bundles the official Pyodide **0.27.7** distribution from
 https://cdn.jsdelivr.net/pyodide/v0.27.7/full/ using `tools/fetch_pyodide.py`.
 Core assets are version-pinned. Wheel SHA-256 checksums are verified against
 the distribution's pyodide-lock.json. runtime-manifest.json records downloaded
-files, byte counts, and hashes. The built site serves them locally.
+files, byte counts, and hashes. The built site serves them locally. The asset-scoped service worker caches these files in browsers with Cache Storage. Its cache key comes from the pinned files and their hashes.
 
 Pyodide is MPL-2.0 licensed; its upstream license is retained in the runtime.
 The CPython license is retained separately as LICENSE-CPYTHON. Scientific

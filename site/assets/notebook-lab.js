@@ -9,6 +9,7 @@ const baseConfig = '[paths]\ndata = "../data/raw/trials.csv"\noutput = "../resul
 const baseHelper = 'def clean_trials(trials, min_rt_s=0.2, max_rt_s=2.0):\n    return trials.loc[trials.reaction_time.between(min_rt_s, max_rt_s)].copy()\n';
 const storageKey = 'research-code-notebook-v1';
 const pythonLoadTimeout = 300000;
+const pythonCacheReady = enablePythonCache();
 const guide = q('[data-guide-action]');
 const feedback = q('[data-guide-feedback]');
 const stepPanel = q('#current-step');
@@ -31,6 +32,7 @@ let ready = false;
 let busy = false;
 let sequence = 0;
 let execution = 0;
+let sessionGeneration = 0;
 
 const currentStep = () => lesson.steps[stepIndex];
 const cellAt = index => q(`[data-cell="${index}"]`);
@@ -76,6 +78,7 @@ function markOutputsStale() {
 }
 
 function terminate(reason) {
+  sessionGeneration++;
   worker?.terminate();
   worker = null;
   ready = false;
@@ -105,9 +108,47 @@ function request(action, values = {}, timeout = 15000) {
   });
 }
 
+async function enablePythonCache() {
+  try {
+    if (!navigator.serviceWorker) return;
+    const url = new URL('./python-runtime-cache.js', import.meta.url);
+    const registration = navigator.serviceWorker.register(url, {type: 'module', updateViaCache: 'none'});
+    let timer;
+    let settled = false;
+    let service;
+    let onStateChange;
+    try {
+      await Promise.race([
+        registration.then(reg => {
+          if (settled || reg.active?.state === 'activated') return;
+          service = reg.installing ?? reg.waiting ?? reg.active;
+          if (!service || ['activated', 'redundant'].includes(service.state)) return;
+          return new Promise(resolve => {
+            onStateChange = () => {
+              if (['activated', 'redundant'].includes(service.state)) resolve();
+            };
+            service.addEventListener('statechange', onStateChange);
+          });
+        }),
+        new Promise(resolve => { timer = setTimeout(resolve, 2500); })
+      ]);
+    } finally {
+      settled = true;
+      clearTimeout(timer);
+      if (onStateChange) service.removeEventListener('statechange', onStateChange);
+    }
+  } catch {
+    // Python can still start if service workers are disabled or unavailable.
+  }
+}
+
 async function start() {
   if (ready) return;
-  const activeWorker = new Worker(new URL('./python-worker.js', import.meta.url), {type: 'module'});
+  const generation = sessionGeneration;
+  message('Starting Python…');
+  await pythonCacheReady;
+  if (generation !== sessionGeneration) throw new Error('The Python session was cleared.');
+  const activeWorker = new Worker(new URL('./python-worker.js?v=runtime-cache', import.meta.url), {type: 'module'});
   worker = activeWorker;
   worker.onmessage = ({data}) => {
     if (worker !== activeWorker) return;
@@ -126,7 +167,6 @@ async function start() {
     if (worker === activeWorker) terminate('Python could not load. Reload the page if retrying does not help.');
   };
   controls();
-  message('Starting Python…');
   const projectFiles = Object.fromEntries(Object.entries(filePaths).map(([file, path]) => [path, files[file]]));
   await request('init', {files: projectFiles}, pythonLoadTimeout);
   ready = true;

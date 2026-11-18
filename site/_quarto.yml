@@ -70,7 +70,7 @@ format:
     code-overflow: wrap
     highlight-style: github
     include-after-body:
-      - text: '<script type="module" src="/assets/workshop.js"></script>'
+      - text: '<script type="module" src="/assets/workshop.js?v=runtime-cache"></script>'
     link-external-newwindow: true
     smooth-scroll: false
 lang: en

@@ -93,7 +93,7 @@ page-layout: full
 </section>
 </div>
 
-<p class="small-note lab-footnote">Drafts are saved in this browser when storage is available. Python starts with empty variables each visit. The first run loads about 32 MB.</p>
+<p class="small-note lab-footnote">Drafts are saved in this browser when storage is available. Python starts with empty variables each visit. The first run downloads about 32 MB. Your browser can reuse these files for fresh Python sessions.</p>
 <details class="notebook-reference">
 <summary>Run the project in Jupyter</summary>
 <p><a href="downloads/motion-perception.zip">Download the complete project</a> and follow <a href="setup.html">local setup</a> to run the three example notebooks. To run an exported exercise notebook, use the project root as the working directory. Put the exported <code>helpers.py</code> in the project root and <code>analysis.toml</code> in <code>config/</code>.</p>
